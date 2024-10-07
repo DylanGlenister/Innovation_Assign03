@@ -10,7 +10,7 @@ python -m venv .venv
 ### Activate the virtual envionment.
 - Windows:
 ```bash
-.\.venv\bin\activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 - Linux, MacOS
 ```bash
