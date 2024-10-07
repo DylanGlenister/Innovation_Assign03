@@ -1,13 +1,16 @@
 # Backend
-### Create the virtual environment.
 **MAKE SURE YOU ARE IN THE `backend` FOLDER**
+```bash
+cd backend
+```
+### Create the virtual environment.
 ```bash
 python -m venv .venv
 ```
 ### Activate the virtual envionment.
 - Windows:
 ```bash
-.\.venv\bin\activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 - Linux, MacOS
 ```bash
