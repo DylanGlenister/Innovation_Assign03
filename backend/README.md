@@ -1,6 +1,9 @@
 # Backend
-### Create the virtual environment.
 **MAKE SURE YOU ARE IN THE `backend` FOLDER**
+```bash
+cd backend
+```
+### Create the virtual environment.
 ```bash
 python -m venv .venv
 ```
