@@ -24,3 +24,9 @@ pip install -r requirements.txt
 1. With the main.py file open, at the bottom right click the text that says the python version (the right one).
 2. Select 'Enter interpreter path...'
 3. Enter `./backend/.venv/bin/python3.12`
+
+## Test run
+```bash
+cd backend
+uvicorn main:app --reload
+```
