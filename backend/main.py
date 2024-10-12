@@ -85,7 +85,7 @@ async def get_location(location: Location):
 
 @app.get("/test/number/{num}/{message}")
 async def show_number_message(num: int, message: str):
-	'''For testing, respondes with the number and message.'''
+	'''For testing; responds with the number and message.'''
 	return { "number": num, "message": message }
 
 @app.get("/test/query")
