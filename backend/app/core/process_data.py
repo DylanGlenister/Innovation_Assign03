@@ -1,11 +1,12 @@
 import pandas as pd
 from datetime import datetime, date
+from utils.paths import Paths
 
 class DataProcessor:
 	def process_data(self):
 		block_size = 14
 
-		raw_data = pd.read_csv('./app/models/weatherAUS.csv')
+		raw_data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		raw_data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
 
@@ -124,4 +125,4 @@ class DataProcessor:
 			return df_filtered
 
 		purged = purge(reconfigured)
-		purged.to_csv('./app/models/weatherAUS_processed.csv')
+		purged.to_csv(Paths.processed_dataset)

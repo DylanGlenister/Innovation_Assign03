@@ -4,10 +4,10 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
+from utils.paths import Paths
 
 class WeatherPredictionModel():
 	def __init__(self):
-		self.path = './app/models/weatherAUS_processed.csv'
 		self.data_imported = False
 		return
 
@@ -33,7 +33,7 @@ class WeatherPredictionModel():
 		return features, targets
 
 	def __import_and_split_data(self):
-		imported_data = pd.read_csv(self.path, index_col=[0, 1, 2])
+		imported_data = pd.read_csv(Paths.processed_dataset, index_col=[0, 1, 2])
 		X, Y = WeatherPredictionModel.__gpt_split_into_features_and_target(self, imported_data)
 		print("Imported data:")
 		print(f'X has {X.shape[0]} samples, Y has {Y.shape[0]} samples.')
@@ -71,10 +71,10 @@ class WeatherPredictionModel():
 		print(f'R^2 Score: {r2_score(self.Y_test, ridge_y_pred):.2f}\n')
 
 	def save_linear(self):
-		joblib.dump(self.model_linear, './app/models/linear_model.pkl')
+		joblib.dump(self.model_linear, Paths.linear_model)
 
 	def save_ridge(self):
-		joblib.dump(self.model_ridge, './app/models/ridge_model.pkl')
+		joblib.dump(self.model_ridge, Paths.ridge_model)
 
 if __name__ == "__main__":
 	model = WeatherPredictionModel()
