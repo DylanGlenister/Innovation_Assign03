@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 class WeatherPredictionModel():
 	def __init__(self):
-		self.path = './weatherAUS_processed.csv'
+		self.path = './app/models/weatherAUS_processed.csv'
 		self.data_imported = False
 		return
 
@@ -71,10 +71,10 @@ class WeatherPredictionModel():
 		print(f'R^2 Score: {r2_score(self.Y_test, ridge_y_pred):.2f}\n')
 
 	def save_linear(self):
-		joblib.dump(self.model_linear, 'linear_model.pkl')
+		joblib.dump(self.model_linear, './app/models/linear_model.pkl')
 
 	def save_ridge(self):
-		joblib.dump(self.model_ridge, 'ridge_model.pkl')
+		joblib.dump(self.model_ridge, './app/models/ridge_model.pkl')
 
 if __name__ == "__main__":
 	model = WeatherPredictionModel()

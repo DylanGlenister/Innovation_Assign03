@@ -2,8 +2,12 @@ import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from app.core.location import Location
+from app.core.process_data import DataProcessor
+from app.core.model import WeatherPredictionModel
 
 app = FastAPI()
+
+api_path = "/api/v1/endpoints/"
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -27,16 +31,33 @@ async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { "message": "Hello world" }
 
-@app.get("/location/{location}")
+@app.get(api_path + "location/{location}")
 async def get_location(location: Location):
 	'''Testing enums.'''
 	return { "location": location }
 
-@app.get("/test/number/{num}/{message}")
+@app.get(api_path + "test/number/{num}/{message}")
 async def show_number_message(num: int, message: str):
 	'''For testing; responds with the number and message.'''
 	return { "number": num, "message": message }
 
-@app.get("/test/query")
+@app.get(api_path + "test/query")
 async def show_query_params(bool: bool, integer: int = 0, string: str = ""):
 	return { "bool": bool, "integer": integer, "string": string }
+
+@app.get(api_path + "process")
+async def process_data():
+	processor = DataProcessor()
+	processor.process_data()
+	return { "State": "Finished" }
+
+@app.get(api_path + "models")
+async def train_both_models():
+	model = WeatherPredictionModel()
+	model.train_linear()
+	model.evaluate_linear()
+	model.save_linear()
+	model.train_ridge()
+	model.evaluate_ridge()
+	model.save_ridge()
+	return { "State": "Finished" }
