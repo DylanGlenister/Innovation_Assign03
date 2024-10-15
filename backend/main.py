@@ -1,60 +1,9 @@
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from enum import Enum
+from location import Location
 
 app = FastAPI()
-
-class Location(str, Enum):
-	Albury = "Albury"
-	BadgerysCreek = "BadgerysCreek"
-	Cobar = "Cobar"
-	CoffsHarbour = "CoffsHarbour"
-	Moree = "Moree"
-	Newcastle = "Newcastle"
-	NorahHead = "NorahHead"
-	NorfolkIsland = "NorfolkIsland"
-	Penrith = "Penrith"
-	Richmond = "Richmond"
-	Sydney = "Sydney"
-	SydneyAirport = "SydneyAirport"
-	WaggaWagga = "WaggaWagga"
-	Williamtown = "Williamtown"
-	Wollongong = "Wollongong"
-	Canberra = "Canberra"
-	Tuggeranong = "Tuggeranong"
-	MountGinini = "MountGinini"
-	Ballarat = "Ballarat"
-	Bendigo = "Bendigo"
-	Sale = "Sale"
-	MelbourneAirport = "MelbourneAirport"
-	Melbourne = "Melbourne"
-	Mildura = "Mildura"
-	Nhil = "Nhil"
-	Portland = "Portland"
-	Watsonia = "Watsonia"
-	Dartmoor = "Dartmoor"
-	Brisbane = "Brisbane"
-	Cairns = "Cairns"
-	GoldCoast = "GoldCoast"
-	Townsville = "Townsville"
-	Adelaide = "Adelaide"
-	MountGambier = "MountGambier"
-	Nuriootpa = "Nuriootpa"
-	Woomera = "Woomera"
-	Albany = "Albany"
-	Witchcliffe = "Witchcliffe"
-	PearceRAAF = "PearceRAAF"
-	PerthAirport = "PerthAirport"
-	Perth = "Perth"
-	SalmonGums = "SalmonGums"
-	Walpole = "Walpole"
-	Hobart = "Hobart"
-	Launceston = "Launceston"
-	AliceSprings = "AliceSprings"
-	Darwin = "Darwin"
-	Katherine = "Katherine"
-	Uluru = "Uluru"
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
