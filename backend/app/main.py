@@ -1,7 +1,7 @@
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from location import Location
+from app.core.location import Location
 
 app = FastAPI()
 
