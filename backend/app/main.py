@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from app.utils.paths import Paths
 from app.core.location import Location
 from app.core.process_data import DataProcessor
-from app.core.model import WeatherPredictionModel
+from app.core.model import LinearWeatherModel, RidgeWeatherModel
 
 app = FastAPI()
 
@@ -46,13 +46,35 @@ async def process_data():
 	processor.process_data()
 	return { "State": "Finished" }
 
-@app.get(Paths.api_path + "/models")
+@app.get(Paths.api_path + "/models/train")
 async def train_both_models():
-	model = WeatherPredictionModel()
-	model.train_linear()
-	model.evaluate_linear()
-	model.save_linear()
-	model.train_ridge()
-	model.evaluate_ridge()
-	model.save_ridge()
+	linear_model = LinearWeatherModel()
+	linear_model.train()
+	linear_model.evaluate()
+	linear_model.save()
+	ridge_model = RidgeWeatherModel()
+	ridge_model.train()
+	ridge_model.evaluate()
+	ridge_model.save()
 	return { "State": "Finished" }
+
+@app.get(Paths.api_path + "/models/linear/train")
+async def linear_train():
+	linear_model = LinearWeatherModel()
+	linear_model.train()
+	linear_model.evaluate()
+	linear_model.save()
+	return { "State": "Finished" }
+
+@app.get(Paths.api_path + "/models/ridge/train")
+async def ridge_train():
+	ridge_model = RidgeWeatherModel()
+	ridge_model.train()
+	ridge_model.evaluate()
+	ridge_model.save()
+	return { "State": "Finished" }
+
+@app.get(Paths.api_path + "/models/linear/predict")
+async def linear_predict():
+	linear_model = LinearWeatherModel()
+	linear_model.predict()
