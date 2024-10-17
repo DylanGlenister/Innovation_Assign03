@@ -25,27 +25,28 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 		content={"detail": exc.detail, "error": "An error occurred"}
 	)
 
+# I would like this to list all the avaiable api endpoints.
 @app.get("/")
 async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { "message": "Hello world" }
 
-@app.get(Paths.api_path + "test/number/{num}/{message}")
+@app.get(Paths.api_path + "/test/number/{num}/{message}")
 async def show_number_message(num: int, message: str):
 	'''For testing; responds with the number and message.'''
 	return { "number": num, "message": message }
 
-@app.get(Paths.api_path + "test/query")
+@app.get(Paths.api_path + "/test/query")
 async def show_query_params(bool: bool, integer: int = 0, string: str = ""):
 	return { "bool": bool, "integer": integer, "string": string }
 
-@app.get(Paths.api_path + "process")
+@app.get(Paths.api_path + "/process")
 async def process_data():
 	processor = DataProcessor()
 	processor.process_data()
 	return { "State": "Finished" }
 
-@app.get(Paths.api_path + "models")
+@app.get(Paths.api_path + "/models")
 async def train_both_models():
 	model = WeatherPredictionModel()
 	model.train_linear()
