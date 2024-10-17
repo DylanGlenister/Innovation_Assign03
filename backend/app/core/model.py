@@ -4,7 +4,8 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
-from utils.paths import Paths
+from app.utils.paths import Paths
+from app.utils.model_settings import Model_Settings
 
 class WeatherPredictionModel():
 	def __init__(self):
