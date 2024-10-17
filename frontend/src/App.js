@@ -1,3 +1,7 @@
+/** Main app component
+ * Extract as much code to external files as possible
+ */
+
 import React, { useState } from 'react';
 import {
 	AppBar, Toolbar, Typography, Container, Grid, Card, CardContent, Button, Box,
