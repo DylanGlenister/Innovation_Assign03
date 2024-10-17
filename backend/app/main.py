@@ -1,10 +1,10 @@
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from utils.paths import Paths
-from core.location import Location
-from core.process_data import DataProcessor
-from core.model import WeatherPredictionModel
+from app.utils.paths import Paths
+from app.core.location import Location
+from app.core.process_data import DataProcessor
+from app.core.model import WeatherPredictionModel
 
 app = FastAPI()
 
@@ -29,11 +29,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { "message": "Hello world" }
-
-@app.get(Paths.api_path + "location/{location}")
-async def get_location(location: Location):
-	'''Testing enums.'''
-	return { "location": location }
 
 @app.get(Paths.api_path + "test/number/{num}/{message}")
 async def show_number_message(num: int, message: str):
