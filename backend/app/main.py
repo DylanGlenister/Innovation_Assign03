@@ -40,6 +40,12 @@ async def show_number_message(num: int, message: str):
 async def show_query_params(bool: bool, integer: int = 0, string: str = ""):
 	return { "bool": bool, "integer": integer, "string": string }
 
+@app.get("/test/dump")
+async def test_dump():
+	m = LinearWeatherModel()
+	m.train()
+	m.dump_test()
+
 @app.get(Paths.api_path + "/process")
 async def process_data():
 	processor = DataProcessor()
@@ -76,5 +82,10 @@ async def ridge_train():
 
 @app.get(Paths.api_path + "/models/linear/predict")
 async def linear_predict():
-	linear_model = LinearWeatherModel()
-	linear_model.predict()
+	try:
+		linear_model = LinearWeatherModel()
+		result = linear_model.predict()
+		print(result)
+		return { "State": "Finished" }
+	except Exception as e:
+		raise HTTPException(status_code=500, detail='Internal server error')
