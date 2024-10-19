@@ -12,7 +12,6 @@ from app.utils.model_settings import Model_Settings
 class BaseWeatherModel():
 	def __init__(self):
 		self.data_imported = False
-		return
 
 	def divide_group(self, _group: pd.DataFrame):
 		'''Private method. Split up the group into features and a target.'''
@@ -92,7 +91,7 @@ class LinearWeatherModel(BaseWeatherModel):
 		print(f'Mean Squared Error: {mean_squared_error(self.Y_test, linear_y_pred):.2f}')
 		print(f'R^2 Score: {r2_score(self.Y_test, linear_y_pred):.2f}')
 		np.set_printoptions(threshold=np.inf) # type: ignore
-		with open('./app/models/Y_pred.txt', 'w') as f:
+		with open('./app/models/linear_Y_pred.txt', 'w') as f:
 			f.write(np.array2string(linear_y_pred, separator=', '))
 
 	def dump_test(self):
@@ -127,6 +126,8 @@ class RidgeWeatherModel(BaseWeatherModel):
 		print('\nRidge Regression Evaluation:')
 		print(f'Mean Squared Error: {mean_squared_error(self.Y_test, ridge_y_pred):.2f}')
 		print(f'R^2 Score: {r2_score(self.Y_test, ridge_y_pred):.2f}')
+		with open('./app/models/ridge_Y_pred.txt', 'w') as f:
+			f.write(np.array2string(ridge_y_pred, separator=', '))
 
 	def save(self):
 		joblib.dump(self.model_ridge, Paths.ridge_model)
