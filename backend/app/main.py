@@ -2,7 +2,7 @@ import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from app.utils.paths import Paths
-from app.core.location import Location
+from app.utils.location import Location
 from app.core.process_data import DataProcessor
 from app.core.model import LinearWeatherModel, RidgeWeatherModel
 
