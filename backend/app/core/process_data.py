@@ -1,4 +1,6 @@
 import pandas as pd
+import hashlib as hl
+import numpy as np
 from datetime import datetime, date
 from app.utils.paths import Paths
 from app.utils.model_settings import Model_Settings
@@ -59,7 +61,10 @@ class DataProcessor:
 
 		def hash_location(_location: str) -> int:
 			'''Converts the string into bytes then reencodes it to an int.'''
-			return int.from_bytes(_location.encode(), 'big')
+			# Create a SHA-256 hash of the word
+			hash_object = hl.sha256(_location.encode())
+			# Convert the hash to an integer
+			return int(hash_object.hexdigest(), 16) % np.iinfo(np.int16).max
 
 		data['LocationHash'] = data['Location'].apply(hash_location)
 
