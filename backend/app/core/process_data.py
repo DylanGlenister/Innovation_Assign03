@@ -1,37 +1,39 @@
 import pandas as pd
+import hashlib as hl
+import numpy as np
 from datetime import datetime, date
+from app.utils.paths import Paths
+from app.utils.model_settings import Model_Settings
+from app.utils.location import Location
 
 class DataProcessor:
 	def process_data(self):
-		block_size = 14
-
-		raw_data = pd.read_csv('./app/models/weatherAUS.csv')
+		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
-		raw_data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
+		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
 
 		# Fill missing data
-		data_filled = raw_data.copy()
-		data_filled.fillna({'MinTemp': data_filled['MinTemp'].interpolate()}, inplace=True)
-		data_filled.fillna({'MaxTemp': data_filled['MaxTemp'].interpolate()}, inplace=True)
-		data_filled.fillna({'Temp9am': data_filled['Temp9am'].interpolate()}, inplace=True)
-		data_filled.fillna({'Temp3pm': data_filled['Temp3pm'].interpolate()}, inplace=True)
-		data_filled.fillna({'Rainfall': data_filled['Rainfall'].interpolate()}, inplace=True)
-		data_filled.fillna({'WindGustSpeed': data_filled['WindGustSpeed'].interpolate()}, inplace=True)
-		data_filled.fillna({'WindSpeed9am': data_filled['WindSpeed9am'].interpolate()}, inplace=True)
-		data_filled.fillna({'WindSpeed3pm': data_filled['WindSpeed3pm'].interpolate()}, inplace=True)
-		data_filled.fillna({'Humidity9am': data_filled['Humidity9am'].interpolate()}, inplace=True)
-		data_filled.fillna({'Humidity3pm': data_filled['Humidity3pm'].interpolate()}, inplace=True)
-		data_filled.fillna({'Pressure9am': data_filled['Pressure9am'].interpolate()}, inplace=True)
-		data_filled.fillna({'Pressure3pm': data_filled['Pressure3pm'].interpolate()}, inplace=True)
+		data.fillna({'MinTemp': data['MinTemp'].interpolate()}, inplace=True)
+		data.fillna({'MaxTemp': data['MaxTemp'].interpolate()}, inplace=True)
+		data.fillna({'Temp9am': data['Temp9am'].interpolate()}, inplace=True)
+		data.fillna({'Temp3pm': data['Temp3pm'].interpolate()}, inplace=True)
+		data.fillna({'Rainfall': data['Rainfall'].interpolate()}, inplace=True)
+		data.fillna({'WindGustSpeed': data['WindGustSpeed'].interpolate()}, inplace=True)
+		data.fillna({'WindSpeed9am': data['WindSpeed9am'].interpolate()}, inplace=True)
+		data.fillna({'WindSpeed3pm': data['WindSpeed3pm'].interpolate()}, inplace=True)
+		data.fillna({'Humidity9am': data['Humidity9am'].interpolate()}, inplace=True)
+		data.fillna({'Humidity3pm': data['Humidity3pm'].interpolate()}, inplace=True)
+		data.fillna({'Pressure9am': data['Pressure9am'].interpolate()}, inplace=True)
+		data.fillna({'Pressure3pm': data['Pressure3pm'].interpolate()}, inplace=True)
 		# Cloud9am and Cloud3pm have too many missing values to properly interpolate, assume NaN means no cloud cover
-		data_filled.fillna({'Cloud9am': 0}, inplace=True)
-		data_filled.fillna({'Cloud3pm': 0}, inplace=True)
+		data.fillna({'Cloud9am': 0}, inplace=True)
+		data.fillna({'Cloud3pm': 0}, inplace=True)
 
 		def to_iso_date(_date: str) -> str:
 			'''Converts the date from dd-mm-yyyy to yyyy-mm-dd'''
 			return datetime.strptime(_date, '%d-%m-%Y').strftime("%Y-%m-%d")
 
-		def convert_date_to_day_index(_date: str):
+		def convert_date_to_day_index(_date: str) -> int:
 			'''Converts the date into the number of days since 2000-01-01'''
 			delta = datetime.strptime(_date, '%Y-%m-%d').date() - date(2000, 1, 1)
 			return delta.days
@@ -48,26 +50,24 @@ class DataProcessor:
 			'''Returns the day component of the date'''
 			return datetime.strptime(_date, '%Y-%m-%d').day
 
-		redated = data_filled.copy()
-		redated['Date'] = redated['Date'].apply(to_iso_date)
-		redated['DayIndex'] = redated['Date'].apply(convert_date_to_day_index)
+		data['Date'] = data['Date'].apply(to_iso_date)
+		data['DayIndex'] = data['Date'].apply(convert_date_to_day_index)
 		# TODO May need to remove year to prevent overfitting
-		redated['Year'] = redated['Date'].apply(extract_year)
-		redated['Month'] = redated['Date'].apply(extract_month)
+		data['Year'] = data['Date'].apply(extract_year)
+		data['Month'] = data['Date'].apply(extract_month)
 		# Don't include the day to make it harder for the model to overfit
-		#redated['Day'] = redated['Date'].apply(extract_day)
+		#data['Day'] = data['Date'].apply(extract_day)
 		# Remove the date as well for the same reason
-		redated.drop(columns=['Date'], inplace=True)
+		data.drop(columns=['Date'], inplace=True)
 
 		def hash_location(_location: str) -> int:
 			'''Converts the string into bytes then reencodes it to an int.'''
-			return int.from_bytes(_location.encode(), 'big')
+			return Location.switch(_location)
 
-		hashed = redated.copy()
-		hashed['LocationHash'] = hashed['Location'].apply(hash_location)
+		data['LocationHash'] = data['Location'].apply(hash_location)
 
 		def reconfigure(_df: pd.DataFrame, _block_size=5):
-			'''Splits the rows into blocks up to a max size defined by block_size. Blocks are per location. Uses Location, Date, Block, and Id as the labels for a multiIndex DataFrame.'''
+			'''Splits the rows into blocks up to a max size defined by Model_Settings.block_size. Blocks are per location. Uses Location, Date, Block, and Id as the labels for a multiIndex DataFrame.'''
 			# Lists to store block and id number
 			block = []
 			id = []
@@ -104,16 +104,16 @@ class DataProcessor:
 			stripped.set_index(index, inplace=True)
 			return stripped
 
-		reconfigured = reconfigure(hashed, block_size)
+		data = reconfigure(data, Model_Settings.block_size)
 
 		def purge(_df: pd.DataFrame) -> pd.DataFrame:
 			'''Purge blocks with less than 10 elements in them.'''
 			# Count rows in each block
 			block_sizes = _df.groupby(['Location', 'Block'], sort=False).size()
 
-			# Identify unfit blocks (those with less than block_size)
+			# Identify unfit blocks (those with less than Model_Settings.block_size)
 			# Pylance mistakes this for an error
-			unfit = block_sizes[block_sizes < block_size].index.to_list() # type: ignore
+			unfit = block_sizes[block_sizes < Model_Settings.block_size].index.to_list() # type: ignore
 
 			# Boolean indexing to drop multiple combinations
 			df_filtered = _df[~(
@@ -123,5 +123,5 @@ class DataProcessor:
 
 			return df_filtered
 
-		purged = purge(reconfigured)
-		purged.to_csv('./app/models/weatherAUS_processed.csv')
+		data = purge(data)
+		data.to_csv(Paths.processed_dataset)
