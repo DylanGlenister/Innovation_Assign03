@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime, date
 from app.utils.paths import Paths
 from app.utils.model_settings import Model_Settings
+from app.utils.location import Location
 
 class DataProcessor:
 	def process_data(self):
@@ -61,10 +62,7 @@ class DataProcessor:
 
 		def hash_location(_location: str) -> int:
 			'''Converts the string into bytes then reencodes it to an int.'''
-			# Create a SHA-256 hash of the word
-			hash_object = hl.sha256(_location.encode())
-			# Convert the hash to an integer
-			return int(hash_object.hexdigest(), 16) % np.iinfo(np.int16).max
+			return Location.switch(_location)
 
 		data['LocationHash'] = data['Location'].apply(hash_location)
 
