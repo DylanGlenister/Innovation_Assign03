@@ -31,28 +31,12 @@ async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { 'message': 'Hello world' }
 
-@app.get(Paths.api_path + '/test/number/{num}/{message}')
-async def show_number_message(num: int, message: str):
-	'''For testing; responds with the number and message.'''
-	return { 'number': num, 'message': message }
-
-@app.get(Paths.api_path + '/test/query')
-async def show_query_params(bool: bool, integer: int = 0, string: str = ''):
-	return { 'bool': bool, 'integer': integer, 'string': string }
-
-@app.get('/test/dump')
-async def test_dump():
-	m = LinearWeatherModel()
-	m.train()
-	m.dump_test()
-
-@app.get(Paths.api_path + '/process')
+@app.get(Paths.api_path + '/process_data')
 async def process_data():
-	processor = DataProcessor()
-	processor.process_data()
+	DataProcessor().process_data()
 	return { 'State': 'Finished' }
 
-@app.get(Paths.api_path + '/models/train')
+@app.get(Paths.api_path + '/models/train_all')
 async def train_both_models():
 	linear_model = LinearWeatherModel()
 	linear_model.train()
@@ -107,3 +91,12 @@ async def linear_predict(prerequisit: PrerequisitData):
 		}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
+
+@app.get(Paths.api_path + '/test/number/{num}/{message}')
+async def show_number_message(num: int, message: str):
+	'''For testing; responds with the number and message.'''
+	return { 'number': num, 'message': message }
+
+@app.get(Paths.api_path + '/test/query')
+async def show_query_params(bool: bool, integer: int = 0, string: str = ''):
+	return { 'bool': bool, 'integer': integer, 'string': string }
