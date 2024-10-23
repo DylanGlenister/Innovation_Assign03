@@ -1,13 +1,12 @@
 import pandas as pd
-import hashlib as hl
-import numpy as np
 from datetime import datetime, date
 from app.utils.paths import Paths
 from app.utils.model_settings import Model_Settings
 from app.utils.location import Location
 
 class DataProcessor:
-	def process_data(self):
+	@staticmethod
+	def process_data():
 		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
@@ -124,4 +123,5 @@ class DataProcessor:
 			return df_filtered
 
 		data = purge(data)
+		#data.drop(columns=['DayIndex', 'Year'], inplace=True)
 		data.to_csv(Paths.processed_dataset)
