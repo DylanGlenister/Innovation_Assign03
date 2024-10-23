@@ -1,12 +1,22 @@
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.utils.paths import Paths
 from app.utils.location import Location
 from app.core.process_data import DataProcessor
 from app.core.model import LinearWeatherModel, RidgeWeatherModel, PrerequisitData
 
 app = FastAPI()
+
+# Add CORS middleware, required for frontend connection to work
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["http://localhost:3000"], # URL of React application
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
+)
 
 @app.middleware('http')
 async def log_requests(request: Request, call_next):
