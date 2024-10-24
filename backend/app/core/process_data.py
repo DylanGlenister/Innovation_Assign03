@@ -50,6 +50,7 @@ class DataProcessor:
 			return datetime.strptime(_date, '%Y-%m-%d').day
 
 		data['Date'] = data['Date'].apply(to_iso_date)
+		# DayIndex is needed for reconfiguration, to validate sequenciality.
 		data['DayIndex'] = data['Date'].apply(convert_date_to_day_index)
 		# TODO May need to remove year to prevent overfitting
 		data['Year'] = data['Date'].apply(extract_year)
@@ -123,5 +124,6 @@ class DataProcessor:
 			return df_filtered
 
 		data = purge(data)
-		#data.drop(columns=['DayIndex', 'Year'], inplace=True)
+		# TODO Try to minimise the MSE
+		#data.drop(columns=['DayIndex'], inplace=True)
 		data.to_csv(Paths.processed_dataset)
