@@ -10,7 +10,29 @@ from pydantic import BaseModel, Field
 from app.utils.paths import Paths
 #from app.utils.model_settings import Model_Settings
 
-block_size = 14
+'''dtype={
+	"Location": str,
+	"Block": int,
+	"Id": int,
+	"MinTemp": float,
+	"MaxTemp": float,
+	"Rainfall": float,
+	"WindGustSpeed": float,
+	"WindSpeed9am": float,
+	"WindSpeed3pm": float,
+	"Humidity9am": float,
+	"Humidity3pm": float,
+	"Pressure9am": float,
+	"Pressure3pm": float,
+	"Cloud9am": float,
+	"Cloud3pm": float,
+	"Temp9am": float,
+	"Temp3pm": float,
+	"DayIndex": int,
+	"Year": int,
+	"Month": int,
+	"LocationHash": int
+}'''
 
 class DayData(BaseModel):
 	MinTemp: float = Field(13, ge=-70, le=70, description="The minimum temperature for the day (C)")
@@ -50,7 +72,6 @@ class PrerequisitData(BaseModel):
 	Day10: DayData = Field(..., description='A day of weather data.')
 	Day11: DayData = Field(..., description='A day of weather data.')
 	Day12: DayData = Field(..., description='A day of weather data.')
-	Day13: DayData = Field(..., description='A day of weather data.')
 
 	def tolist(_self):
 		return np.array([np.array([
@@ -66,7 +87,7 @@ class PrerequisitData(BaseModel):
 			_self.Day9.tolist(),
 			_self.Day10.tolist(),
 			_self.Day11.tolist(),
-			_self.Day12.tolist(),
+			_self.Day12.tolist()
 		]).flatten()])
 
 	@staticmethod
@@ -116,44 +137,11 @@ class BaseWeatherModel():
 	def import_and_split_data(_self):
 		# Pandas complains that I'm not using dtype parameter but doing so causes a stack overflow
 		with warnings.catch_warnings(action="ignore"):
-			# TODO stop pandas importing the location hash as a string
 			imported_data = pd.read_csv(
 				Paths.processed_dataset,
 				index_col=[0, 1, 2],
 				memory_map=True
 			)
-			'''dtype={
-				"Location": str,
-				"Block": int,
-				"Id": int,
-				"MinTemp": float,
-				"MaxTemp": float,
-				"Rainfall": float,
-				"WindGustSpeed": float,
-				"WindSpeed9am": float,
-				"WindSpeed3pm": float,
-				"Humidity9am": float,
-				"Humidity3pm": float,
-				"Pressure9am": float,
-				"Pressure3pm": float,
-				"Cloud9am": float,
-				"Cloud3pm": float,
-				"Temp9am": float,
-				"Temp3pm": float,
-				"DayIndex": int,
-				"Year": int,
-				"Month": int,
-				"LocationHash": int
-			}'''
-
-		# Fix
-		#imported_data['LocationHash'] = pd.to_numeric(imported_data['LocationHash'])
-		#imported_data['LocationHash'] = imported_data['LocationHash'].astype(np.int64)
-
-		#imported_data.drop(columns=['Year'], inplace=True)
-		#imported_data.drop(columns=['LocationHash'], inplace=True)
-
-		_self.id = imported_data
 
 		X, Y = BaseWeatherModel.gpt_split_into_features_and_target(_self, imported_data)
 		#_self.x = X

@@ -71,6 +71,8 @@ class DataProcessor:
 			# Lists to store block and id number
 			block = []
 			id = []
+			# Block sizes needs to be incremented once before use
+			_block_size += 1
 
 			# Goes through every location
 			for _, group in _df.groupby('Location', sort=False):
