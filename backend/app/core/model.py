@@ -115,9 +115,6 @@ class WeatherModel():
 		Ridge = 'ridge',
 		Lasso = 'lasso'
 
-	#def __init__(_self):
-	#	np.set_printoptions(threshold=np.inf) # type: ignore
-
 	@staticmethod
 	def divide_group(_group: pd.DataFrame):
 		'''Private method. Split up the group into features and a target.'''
@@ -152,53 +149,51 @@ class WeatherModel():
 			)
 
 		X, Y = WeatherModel.split_into_features_and_target(imported_data)
-		#print('\nImported data:')
-		#print(f'X has {X.shape[0]} samples, Y has {Y.shape[0]} samples.')
-
 		X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-		#print(f'Training set size: {X_train.shape[0]} samples')
-		#print(f'Test set size: {X_test.shape[0]} samples')
 		return X_train, X_test, Y_train, Y_test
 
 	@staticmethod
-	def train(_type: ModelType) -> bool:
+	def create_model(_type: ModelType):
 		match _type:
 			case WeatherModel.ModelType.Linear:
-				model = LinearRegression()
+				return LinearRegression()
 			case WeatherModel.ModelType.Ridge:
-				model = Ridge()
+				return Ridge()
 			case WeatherModel.ModelType.Lasso:
-				model = Lasso()
-			case _:
-				return False
+				return Lasso()
 
+	@staticmethod
+	def save_model(_type: ModelType, _model: LinearRegression | Ridge | Lasso):
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				joblib.dump(_model, Paths.linear_model)
+			case WeatherModel.ModelType.Ridge:
+				joblib.dump(_model, Paths.ridge_model)
+			case WeatherModel.ModelType.Lasso:
+				joblib.dump(_model, Paths.lasso_model)
+
+	@staticmethod
+	def load_model(_type: ModelType) -> LinearRegression | Ridge | Lasso:
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				return joblib.load(Paths.linear_model)
+			case WeatherModel.ModelType.Ridge:
+				return joblib.load(Paths.ridge_model)
+			case WeatherModel.ModelType.Lasso:
+				return joblib.load(Paths.lasso_model)
+
+	@staticmethod
+	def train(_type: ModelType):
+		model = WeatherModel.create_model(_type)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		model.fit(X_train, Y_train)
-		match _type:
-			case WeatherModel.ModelType.Linear:
-				joblib.dump(model, Paths.linear_model)
-			case WeatherModel.ModelType.Ridge:
-				joblib.dump(model, Paths.ridge_model)
-			case WeatherModel.ModelType.Lasso:
-				joblib.dump(model, Paths.lasso_model)
-		return True
+		WeatherModel.save_model(_type, model)
 
 	@staticmethod
 	def evaluate(_type: ModelType):
-		match _type:
-			case WeatherModel.ModelType.Linear:
-				model: LinearRegression | Ridge | Lasso = joblib.load(Paths.linear_model)
-			case WeatherModel.ModelType.Ridge:
-				model = joblib.load(Paths.ridge_model)
-			case WeatherModel.ModelType.Lasso:
-				model = joblib.load(Paths.lasso_model)
-			case _:
-				return False
-
+		model = WeatherModel.load_model(_type)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		y_pred = model.predict(X_test)
-		#print(f'Mean Squared Error: {mean_squared_error(Y_test, y_pred):.2f}')
-		#print(f'R^2 Score: {r2_score(Y_test, y_pred):.2f}')
 		return {
 			'Mean Squared Error': f'{mean_squared_error(Y_test, y_pred):.2f}',
 			'R^2 Score': f'{r2_score(Y_test, y_pred):.2f}'
@@ -206,14 +201,5 @@ class WeatherModel():
 
 	@staticmethod
 	def predict(_type: ModelType, pre: PrerequisitData):
-		match _type:
-			case WeatherModel.ModelType.Linear:
-				model: LinearRegression | Ridge | Lasso = joblib.load(Paths.linear_model)
-			case WeatherModel.ModelType.Ridge:
-				model = joblib.load(Paths.ridge_model)
-			case WeatherModel.ModelType.Lasso:
-				model = joblib.load(Paths.lasso_model)
-			case _:
-				return False
-
+		model = WeatherModel.load_model(_type)
 		return model.predict(pre.tolist()).tolist()[0]

@@ -48,46 +48,37 @@ async def process_data():
 
 @app.get(Paths.api_path + '/models/{_type}/train')
 async def model_train(_type: WeatherModel.ModelType):
-	if WeatherModel.train(_type):
-		return { 'Result': 'Success' }
-	else:
-		return { 'Result': 'Error: Invalid model type' }
+	WeatherModel.train(_type)
+	return { 'Result': 'Success' }
 
 @app.get(Paths.api_path + '/models/{_type}/evaluate')
 async def model_evaluate(_type: WeatherModel.ModelType):
-	result = WeatherModel.evaluate(_type)
-	if not result:
-		return { 'Result': 'Error: Invalid model type' }
-	else:
-		return result
+	return WeatherModel.evaluate(_type)
 
 @app.post(Paths.api_path + '/models/{_type}/predict')
 async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
 	try:
 		result = WeatherModel.predict(_type, prerequisit)
-		if not result:
-			return { 'Result': 'Error: Invalid model type' }
-		else:
-			return {
-				'MinTemp': result[0],
-				'MaxTemp': result[1],
-				'Rainfall': result[2],
-				'WindGustSpeed': result[3],
-				'WindSpeed9am': result[4],
-				'WindSpeed3pm': result[5],
-				'Humidity9am': result[6],
-				'Humidity3pm': result[7],
-				'Pressure9am': result[8],
-				'Pressure3pm': result[9],
-				'Cloud9am': result[10],
-				'Cloud3pm': result[11],
-				'Temp9am': result[12],
-				'Temp3pm': result[13],
-				'DayIndex': result[14],
-				'Year': result[15],
-				'Month': result[16],
-				'LocationHash': result[17],
-			}
+		return {
+			'MinTemp': result[0],
+			'MaxTemp': result[1],
+			'Rainfall': result[2],
+			'WindGustSpeed': result[3],
+			'WindSpeed9am': result[4],
+			'WindSpeed3pm': result[5],
+			'Humidity9am': result[6],
+			'Humidity3pm': result[7],
+			'Pressure9am': result[8],
+			'Pressure3pm': result[9],
+			'Cloud9am': result[10],
+			'Cloud3pm': result[11],
+			'Temp9am': result[12],
+			'Temp3pm': result[13],
+			'DayIndex': result[14],
+			'Year': result[15],
+			'Month': result[16],
+			'LocationHash': result[17],
+		}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
