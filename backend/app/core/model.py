@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import warnings
+from enum import Enum
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
@@ -35,24 +36,24 @@ from app.utils.paths import Paths
 }'''
 
 class DayData(BaseModel):
-	MinTemp: float = Field(13, ge=-70, le=70, description="The minimum temperature for the day (C)")
-	MaxTemp: float = Field(23, ge=-70, le=70, description="The maximum temperature for the day (C).")
-	Rainfall: float = Field(0, ge=0, description="How much rain fell in the day (mm).")
-	WindGustSpeed: float = Field(39, ge=0, description="The maximum gust speed (km/h).")
-	WindSpeed9am: float = Field(17, ge=0, description="The rolling average wind speed at 9am (km/h).")
-	WindSpeed3pm: float = Field(19, ge=0, description="The rolling average wind speed at 3pm (km/h).")
-	Humidity9am: float = Field(70, ge=0, le=100, description="The air humidity at 9am (%).")
-	Humidity3pm: float = Field(51, ge=0, le=100, description="The air humidity at 3pm (%).")
-	Pressure9am: float = Field(1018, gt=900, lt=1200, description="The air pressure at 9am (millibars).")
-	Pressure3pm: float = Field(1015, gt=900, lt=1200, description="The air pressure at 3pm (millibars).")
-	Cloud9am: float = Field(1, ge=0, le=9, description="A rating of the amount of cloud cover at 9am (0-9).")
-	Cloud3pm: float = Field(1, ge=0, le=9, description="A rating of the amount of cloud cover at 3pm (0-9).")
-	Temp9am: float = Field(27, ge=-70, le=70, description="The temperature at 9am (C).")
-	Temp3pm: float = Field(22, ge=-70, le=70, description="The temperature at 3pm (C).")
-	DayIndex: int = Field(5000, gt=0, description="The number of days since 01/01/2000.")
-	Year: int = Field(2010, gt=2000, description="What year it is.")
-	Month: int = Field(..., ge=1, le=12, description="What month it is a a number (1-12).")
-	LocationHash: int = Field(..., description="A hardcoded value for each location:\n<todo>.")
+	MinTemp: float = Field(13, ge=-70, le=70, description='The minimum temperature for the day (C)')
+	MaxTemp: float = Field(23, ge=-70, le=70, description='The maximum temperature for the day (C).')
+	Rainfall: float = Field(0, ge=0, description='How much rain fell in the day (mm).')
+	WindGustSpeed: float = Field(39, ge=0, description='The maximum gust speed (km/h).')
+	WindSpeed9am: float = Field(17, ge=0, description='The rolling average wind speed at 9am (km/h).')
+	WindSpeed3pm: float = Field(19, ge=0, description='The rolling average wind speed at 3pm (km/h).')
+	Humidity9am: float = Field(70, ge=0, le=100, description='The air humidity at 9am (%).')
+	Humidity3pm: float = Field(51, ge=0, le=100, description='The air humidity at 3pm (%).')
+	Pressure9am: float = Field(1018, gt=900, lt=1200, description='The air pressure at 9am (millibars).')
+	Pressure3pm: float = Field(1015, gt=900, lt=1200, description='The air pressure at 3pm (millibars).')
+	Cloud9am: float = Field(1, ge=0, le=9, description='A rating of the amount of cloud cover at 9am (0-9).')
+	Cloud3pm: float = Field(1, ge=0, le=9, description='A rating of the amount of cloud cover at 3pm (0-9).')
+	Temp9am: float = Field(27, ge=-70, le=70, description='The temperature at 9am (C).')
+	Temp3pm: float = Field(22, ge=-70, le=70, description='The temperature at 3pm (C).')
+	DayIndex: int = Field(5000, gt=0, description='The number of days since 01/01/2000.')
+	Year: int = Field(2010, gt=2000, description='What year it is.')
+	Month: int = Field(..., ge=1, le=12, description='What month it is a a number (1-12).')
+	LocationHash: int = Field(..., description='A hardcoded value for each location:\n<todo>.')
 
 	def tolist(_self):
 		return [_self.MinTemp, _self.MaxTemp, _self.Rainfall, _self.WindGustSpeed, _self.WindSpeed9am, _self.WindSpeed3pm, _self.Humidity9am, _self.Humidity3pm, _self.Pressure9am, _self.Pressure3pm, _self.Cloud9am, _self.Cloud3pm, _self.Temp9am, _self.Temp3pm, _self.DayIndex, _self.Year, _self.Month, _self.LocationHash]
@@ -108,24 +109,29 @@ class PrerequisitData(BaseModel):
 			17.7,27.8,6.8,30.0,4.0,17.0,99.0,67.0,1011.6673684210526,1009.4801315789474,0.0,0.0,19.6,26.9,4374,2011,12,8,
 		]])
 
-class BaseWeatherModel():
-	def __init__(_self):
-		_self.data_imported = False
-		#np.set_printoptions(threshold=np.inf) # type: ignore
+class WeatherModel():
+	class ModelType(str, Enum):
+		Linear = 'linear',
+		Ridge = 'ridge'
 
-	def divide_group(_self, _group: pd.DataFrame):
+	#def __init__(_self):
+	#	np.set_printoptions(threshold=np.inf) # type: ignore
+
+	@staticmethod
+	def divide_group(_group: pd.DataFrame):
 		'''Private method. Split up the group into features and a target.'''
 		features = _group.iloc[:-1]  # First rows as features
 		target = _group.iloc[-1:]     # Last row as the target
 		return features, target
 
-	def gpt_split_into_features_and_target(_self, _df: pd.DataFrame):
+	@staticmethod
+	def split_into_features_and_target(_df: pd.DataFrame):
 		'''Split a dataframe with groups into features and targets lists.'''
 		features_list = []
 		targets_list = []
 
 		for _, group in _df.groupby(['Location', 'Block'], sort=False):
-			features, target = BaseWeatherModel.divide_group(_self, group)
+			features, target = WeatherModel.divide_group(group)
 			features_list.append(features.values.flatten())  # Flatten the features into one row
 			targets_list.append(target.values[0])  # Single target value
 
@@ -134,60 +140,67 @@ class BaseWeatherModel():
 		targets = np.array(targets_list)
 		return features, targets
 
-	def import_and_split_data(_self):
+	@staticmethod
+	def import_and_split_data():
 		# Pandas complains that I'm not using dtype parameter but doing so causes a stack overflow
-		with warnings.catch_warnings(action="ignore"):
+		with warnings.catch_warnings(action='ignore'):
 			imported_data = pd.read_csv(
 				Paths.processed_dataset,
 				index_col=[0, 1, 2],
 				memory_map=True
 			)
 
-		X, Y = BaseWeatherModel.gpt_split_into_features_and_target(_self, imported_data)
-		#_self.x = X
-		print("\nImported data:")
-		print(f'X has {X.shape[0]} samples, Y has {Y.shape[0]} samples.')
+		X, Y = WeatherModel.split_into_features_and_target(imported_data)
+		#print('\nImported data:')
+		#print(f'X has {X.shape[0]} samples, Y has {Y.shape[0]} samples.')
 
-		_self.X_train, _self.X_test, _self.Y_train, _self.Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-		print(f"Training set size: {_self.X_train.shape[0]} samples")
-		print(f"Test set size: {_self.X_test.shape[0]} samples")
+		X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+		#print(f'Training set size: {X_train.shape[0]} samples')
+		#print(f'Test set size: {X_test.shape[0]} samples')
+		return X_train, X_test, Y_train, Y_test
 
-		_self.data_imported = True
+	@staticmethod
+	def train(_type: ModelType) -> bool:
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				model: LinearRegression | Ridge = LinearRegression()
+			case WeatherModel.ModelType.Ridge:
+				model = Ridge()
+			case _:
+				return False
 
-class LinearWeatherModel(BaseWeatherModel):
-	def train(_self):
-		if (not _self.data_imported):
-			BaseWeatherModel.import_and_split_data(_self)
+		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
+		model.fit(X_train, Y_train)
+		joblib.dump(model, Paths.linear_model)
+		return True
 
-		_self.model_linear = LinearRegression()
-		_self.model_linear.fit(_self.X_train, _self.Y_train)
+	@staticmethod
+	def evaluate(_type: ModelType):
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				model: LinearRegression | Ridge = joblib.load(Paths.linear_model)
+			case WeatherModel.ModelType.Ridge:
+				model = joblib.load(Paths.ridge_model)
+			case _:
+				return False
 
-	def evaluate(_self):
-		linear_y_pred = _self.model_linear.predict(_self.X_test)
-		print('\nLinear Regression Evaluation:')
-		print(f'Mean Squared Error: {mean_squared_error(_self.Y_test, linear_y_pred):.2f}')
-		print(f'R^2 Score: {r2_score(_self.Y_test, linear_y_pred):.2f}')
+		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
+		y_pred = model.predict(X_test)
+		#print(f'Mean Squared Error: {mean_squared_error(Y_test, y_pred):.2f}')
+		#print(f'R^2 Score: {r2_score(Y_test, y_pred):.2f}')
+		return {
+			'Mean Squared Error': f'{mean_squared_error(Y_test, y_pred):.2f}',
+			'R^2 Score': f'{r2_score(Y_test, y_pred):.2f}'
+		}
 
-	def save(_self):
-		joblib.dump(_self.model_linear, Paths.linear_model)
+	@staticmethod
+	def predict(_type: ModelType, pre: PrerequisitData):
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				model: LinearRegression | Ridge = joblib.load(Paths.linear_model)
+			case WeatherModel.ModelType.Ridge:
+				model = joblib.load(Paths.ridge_model)
+			case _:
+				return False
 
-	def predict(_self, pre: PrerequisitData):
-		_self.model_linear: LinearRegression = joblib.load(Paths.linear_model)
-		return _self.model_linear.predict(pre.tolist()).tolist()[0]
-
-class RidgeWeatherModel(BaseWeatherModel):
-	def train(_self):
-		if (not _self.data_imported):
-			BaseWeatherModel.import_and_split_data(_self)
-
-		_self.model_ridge = Ridge()
-		_self.model_ridge.fit(_self.X_train, _self.Y_train)
-
-	def evaluate(_self):
-		ridge_y_pred = _self.model_ridge.predict(_self.X_test)
-		print('\nRidge Regression Evaluation:')
-		print(f'Mean Squared Error: {mean_squared_error(_self.Y_test, ridge_y_pred):.2f}')
-		print(f'R^2 Score: {r2_score(_self.Y_test, ridge_y_pred):.2f}')
-
-	def save(_self):
-		joblib.dump(_self.model_ridge, Paths.ridge_model)
+		return model.predict(pre.tolist()).tolist()[0]
