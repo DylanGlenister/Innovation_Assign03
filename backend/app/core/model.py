@@ -4,7 +4,7 @@ import joblib
 import warnings
 from enum import Enum
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error, r2_score
 from pydantic import BaseModel, Field
 # Cannot be run standalone because of these imports
@@ -112,7 +112,8 @@ class PrerequisitData(BaseModel):
 class WeatherModel():
 	class ModelType(str, Enum):
 		Linear = 'linear',
-		Ridge = 'ridge'
+		Ridge = 'ridge',
+		Lasso = 'lasso'
 
 	#def __init__(_self):
 	#	np.set_printoptions(threshold=np.inf) # type: ignore
@@ -163,24 +164,34 @@ class WeatherModel():
 	def train(_type: ModelType) -> bool:
 		match _type:
 			case WeatherModel.ModelType.Linear:
-				model: LinearRegression | Ridge = LinearRegression()
+				model = LinearRegression()
 			case WeatherModel.ModelType.Ridge:
 				model = Ridge()
+			case WeatherModel.ModelType.Lasso:
+				model = Lasso()
 			case _:
 				return False
 
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		model.fit(X_train, Y_train)
-		joblib.dump(model, Paths.linear_model)
+		match _type:
+			case WeatherModel.ModelType.Linear:
+				joblib.dump(model, Paths.linear_model)
+			case WeatherModel.ModelType.Ridge:
+				joblib.dump(model, Paths.ridge_model)
+			case WeatherModel.ModelType.Lasso:
+				joblib.dump(model, Paths.lasso_model)
 		return True
 
 	@staticmethod
 	def evaluate(_type: ModelType):
 		match _type:
 			case WeatherModel.ModelType.Linear:
-				model: LinearRegression | Ridge = joblib.load(Paths.linear_model)
+				model: LinearRegression | Ridge | Lasso = joblib.load(Paths.linear_model)
 			case WeatherModel.ModelType.Ridge:
 				model = joblib.load(Paths.ridge_model)
+			case WeatherModel.ModelType.Lasso:
+				model = joblib.load(Paths.lasso_model)
 			case _:
 				return False
 
@@ -197,9 +208,11 @@ class WeatherModel():
 	def predict(_type: ModelType, pre: PrerequisitData):
 		match _type:
 			case WeatherModel.ModelType.Linear:
-				model: LinearRegression | Ridge = joblib.load(Paths.linear_model)
+				model: LinearRegression | Ridge | Lasso = joblib.load(Paths.linear_model)
 			case WeatherModel.ModelType.Ridge:
 				model = joblib.load(Paths.ridge_model)
+			case WeatherModel.ModelType.Lasso:
+				model = joblib.load(Paths.lasso_model)
 			case _:
 				return False
 
