@@ -206,5 +206,6 @@ class WeatherModel():
 	def remove(_type: ModelType):
 		remove(WeatherModel.select_model_path(_type))
 
-# TODO Predict will call train if no model exists
-# TODO Train will call process if no dataset exists
+# TODO Predict will call train if no model exists.
+# TODO Train will call process if no dataset exists.
+# TODO Add a startup process that will automatically process, train, and evaluate the models.
