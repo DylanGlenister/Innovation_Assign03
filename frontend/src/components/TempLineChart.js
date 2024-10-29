@@ -2,18 +2,41 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 
+// Manually map each city to its respective state
+const cityStateMapping = {
+  "NSW": [
+    "Albury", "Badgerys Creek", "Cobar", "Coffs Harbour", "Moree", "Newcastle", 
+    "Norah Head", "Norfolk Island", "Penrith", "Richmond", "Sydney", "Sydney Airport", 
+    "Wagga Wagga", "Williamtown", "Wollongong"
+  ],
+  "VIC": [
+    "Ballarat", "Bendigo", "Sale", "Melbourne Airport", "Melbourne", "Mildura", 
+    "Nhil", "Portland", "Watsonia", "Dartmoor"
+  ],
+  "QLD": ["Brisbane", "Cairns", "Gold Coast", "Townsville"],
+  "SA": ["Adelaide", "Mount Gambier", "Nuriootpa", "Woomera"],
+  "WA": ["Albany", "Witchcliffe", "Pearce RAAF", "Perth Airport", "Perth", "Salmon Gums", "Walpole"],
+  "TAS": ["Hobart", "Launceston"],
+  "NT": ["Alice Springs", "Darwin", "Katherine", "Uluru"],
+  "ACT": ["Canberra", "Tuggeranong", "Mount Ginini"]
+};
+
 export default function TempLineChart() {
   const [dataset, setDataset] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState({ month: 6, year: 2008 }); // Default to July 2008
   const [selectedCity, setSelectedCity] = useState("Melbourne"); // Default city
-  const [cities, setCities] = useState([]); // Dynamically populated cities
-  const [availableMonths, setAvailableMonths] = useState([]); // Filtered months
 
-  // Data range in the CSV file
+  // Flatten city-state mapping to create a list of cities
+  const cities = Object.entries(cityStateMapping).flatMap(([state, cities]) =>
+    cities.map(city => ({ state, city }))
+  );
+
   const MIN_YEAR = 2008;
+  const MIN_MONTH = 6; // July (0-indexed)
   const MAX_YEAR = 2017;
+  const MAX_MONTH = 5; // June (0-indexed)
 
-  const allMonths = [
+  const months = [
     { label: "January", value: 0 },
     { label: "February", value: 1 },
     { label: "March", value: 2 },
@@ -40,15 +63,14 @@ export default function TempLineChart() {
         const allData = csvText.split('\n').map((row, index) => {
           if (index === 0) return null; // Skip header row, if any
           const columns = row.split(',');
-          const dateStr = columns[0]?.trim(); // Date should be in the first column
-          const location = columns[1]?.trim(); // Assuming Location is in the second column
-          const minTempStr = columns[2]?.trim(); // Assuming MinTemp is in the third column
-          const maxTempStr = columns[3]?.trim(); // Assuming MaxTemp is in the fourth column
+          const dateStr = columns[0]?.trim();
+          const location = columns[1]?.trim();
+          const minTempStr = columns[2]?.trim();
+          const maxTempStr = columns[3]?.trim();
 
           const minTemperature = parseFloat(minTempStr);
           const maxTemperature = parseFloat(maxTempStr);
 
-          // Parse date in DD-MM-YYYY format
           const [day, month, year] = dateStr.split('-');
           const parsedDate = new Date(`${year}-${month}-${day}`);
 
@@ -59,18 +81,6 @@ export default function TempLineChart() {
             maxTemp: maxTemperature
           };
         }).filter(Boolean); // Filter out any null entries
-
-        // Get unique cities and filter out empty values
-        const uniqueCities = [...new Set(allData.map(row => row.location).filter(location => location && location.trim() !== ""))];
-        setCities(uniqueCities); // Update the cities state dynamically
-
-        // Filter available months for the selected city and year
-        const monthsForYear = allData
-          .filter(row => row.location === selectedCity && row.date.getFullYear() === selectedMonth.year)
-          .map(row => row.date.getMonth());
-        
-        const uniqueMonths = [...new Set(monthsForYear)].sort();
-        setAvailableMonths(allMonths.filter(month => uniqueMonths.includes(month.value)));
 
         // Filter data for the selected city, month, and year
         const filteredData = allData.filter(row =>
@@ -86,8 +96,8 @@ export default function TempLineChart() {
           const entry = filteredData.find(d => d.date.getDate() === day);
           return {
             x: day,
-            minTemp: entry ? entry.minTemp : null, // Use null if data is missing
-            maxTemp: entry ? entry.maxTemp : null, // Use null if data is missing
+            minTemp: entry ? entry.minTemp : null,
+            maxTemp: entry ? entry.maxTemp : null,
           };
         });
 
@@ -100,19 +110,32 @@ export default function TempLineChart() {
     fetchData();
   }, [selectedMonth, selectedCity]);
 
-  // Update selected month and year, with auto-adjustment
   const handleMonthChange = (e) => {
     const newMonth = parseInt(e.target.value);
-    setSelectedMonth(prev => ({ ...prev, month: newMonth }));
+    if (selectedMonth.year === MAX_YEAR && newMonth > MAX_MONTH) {
+      setSelectedMonth(prev => ({ ...prev, month: MAX_MONTH }));
+    } else {
+      setSelectedMonth(prev => ({ ...prev, month: newMonth }));
+    }
   };
 
   const handleYearChange = (e) => {
     const newYear = parseInt(e.target.value);
-    setSelectedMonth(prev => ({ ...prev, year: newYear }));
+    if (newYear === MAX_YEAR && selectedMonth.month > MAX_MONTH) {
+      setSelectedMonth({ month: MAX_MONTH, year: newYear });
+    } else {
+      setSelectedMonth(prev => ({ ...prev, year: newYear }));
+    }
   };
 
   const handleCityChange = (e) => {
     setSelectedCity(e.target.value);
+  };
+
+  const isMonthDisabled = (month) => {
+    if (selectedMonth.year === MIN_YEAR && month < MIN_MONTH) return true;
+    if (selectedMonth.year === MAX_YEAR && month > MAX_MONTH) return true;
+    return false;
   };
 
   return (
@@ -121,24 +144,28 @@ export default function TempLineChart() {
       <div>
         <label>City: </label>
         <select onChange={handleCityChange} value={selectedCity}>
-          {cities.map((city, index) => (
-            <option key={index} value={city}>
-              {city}
-            </option>
+          {Object.keys(cityStateMapping).sort().map((state) => (
+            <optgroup label={`---${state}---`} key={state}>
+              {cityStateMapping[state].sort().map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <label> Month: </label>
         <select onChange={handleMonthChange} value={selectedMonth.month}>
-          {availableMonths.map((m, index) => (
-            <option key={index} value={m.value}>
+          {months.map((m) => (
+            <option key={m.value} value={m.value} disabled={isMonthDisabled(m.value)}>
               {m.label}
             </option>
           ))}
         </select>
         <label> Year: </label>
         <select onChange={handleYearChange} value={selectedMonth.year}>
-          {years.map((year, index) => (
-            <option key={index} value={year}>
+          {years.map((year) => (
+            <option key={year} value={year} disabled={year < MIN_YEAR || year > MAX_YEAR}>
               {year}
             </option>
           ))}
