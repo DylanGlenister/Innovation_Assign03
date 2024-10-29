@@ -41,9 +41,16 @@ async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { 'Message': 'Hello world' }
 
-@app.get(Paths.api_path + '/process_data')
-async def process_data():
-	DataProcessor().process_data()
+@app.get(Paths.api_path + '/data/process')
+async def data_process():
+	'''Process the data to be used with the model. Will only need to be done once.'''
+	DataProcessor.process_data()
+	return { 'Result': 'Finished' }
+
+@app.get(Paths.api_path + '/data/remove')
+async def data_remove():
+	'''Remove the processed data, used for troubleshooting.'''
+	DataProcessor.remove_processed_data()
 	return { 'Result': 'Finished' }
 
 @app.get(Paths.api_path + '/models/{_type}/train')
@@ -81,6 +88,19 @@ async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitD
 		}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
+
+@app.get(Paths.api_path + '/models/{_type}/remove')
+async def model_remove(_type: WeatherModel.ModelType):
+	WeatherModel.remove(_type)
+	return { 'Result': 'Finished' }
+
+@app.get(Paths.api_path + '/clean_all')
+async def clean_all():
+	DataProcessor.remove_processed_data()
+	WeatherModel.remove(WeatherModel.ModelType.Linear)
+	WeatherModel.remove(WeatherModel.ModelType.Ridge)
+	WeatherModel.remove(WeatherModel.ModelType.Lasso)
+	return { 'Result': 'Finished' }
 
 @app.get(Paths.api_path + '/test/number/{_num}/{_message}')
 async def show_number_message(_num: int, _message: str):

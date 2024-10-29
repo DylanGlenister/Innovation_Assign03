@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import warnings
+from os import remove
 from enum import Enum
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
@@ -163,35 +164,30 @@ class WeatherModel():
 				return Lasso()
 
 	@staticmethod
-	def save_model(_type: ModelType, _model: LinearRegression | Ridge | Lasso):
+	def select_model_path(_type: ModelType):
 		match _type:
 			case WeatherModel.ModelType.Linear:
-				joblib.dump(_model, Paths.linear_model)
+				return Paths.linear_model
 			case WeatherModel.ModelType.Ridge:
-				joblib.dump(_model, Paths.ridge_model)
+				return Paths.ridge_model
 			case WeatherModel.ModelType.Lasso:
-				joblib.dump(_model, Paths.lasso_model)
-
-	@staticmethod
-	def load_model(_type: ModelType) -> LinearRegression | Ridge | Lasso:
-		match _type:
-			case WeatherModel.ModelType.Linear:
-				return joblib.load(Paths.linear_model)
-			case WeatherModel.ModelType.Ridge:
-				return joblib.load(Paths.ridge_model)
-			case WeatherModel.ModelType.Lasso:
-				return joblib.load(Paths.lasso_model)
+				return Paths.lasso_model
 
 	@staticmethod
 	def train(_type: ModelType):
 		model = WeatherModel.create_model(_type)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		model.fit(X_train, Y_train)
-		WeatherModel.save_model(_type, model)
+		joblib.dump(
+			model,
+			WeatherModel.select_model_path(_type)
+		)
 
 	@staticmethod
 	def evaluate(_type: ModelType):
-		model = WeatherModel.load_model(_type)
+		model: LinearRegression | Ridge | Lasso = joblib.load(
+			WeatherModel.select_model_path(_type)
+		)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		y_pred = model.predict(X_test)
 		return {
@@ -201,5 +197,14 @@ class WeatherModel():
 
 	@staticmethod
 	def predict(_type: ModelType, pre: PrerequisitData):
-		model = WeatherModel.load_model(_type)
+		model: LinearRegression | Ridge | Lasso = joblib.load(
+			WeatherModel.select_model_path(_type)
+		)
 		return model.predict(pre.tolist()).tolist()[0]
+
+	@staticmethod
+	def remove(_type: ModelType):
+		remove(WeatherModel.select_model_path(_type))
+
+# TODO Predict will call train if no model exists
+# TODO Train will call process if no dataset exists

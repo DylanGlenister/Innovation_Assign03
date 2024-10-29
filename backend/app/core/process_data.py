@@ -1,4 +1,5 @@
 import pandas as pd
+from os import remove
 from datetime import datetime, date
 from app.utils.paths import Paths
 from app.utils.model_settings import Model_Settings
@@ -129,3 +130,7 @@ class DataProcessor:
 		# TODO Try to minimise the MSE
 		#data.drop(columns=['DayIndex'], inplace=True)
 		data.to_csv(Paths.processed_dataset)
+
+	@staticmethod
+	def remove_processed_data():
+		remove(Paths.processed_dataset)
