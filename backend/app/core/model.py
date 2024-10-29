@@ -3,6 +3,7 @@ import numpy as np
 import joblib
 import warnings
 from os import remove
+from pathlib import Path
 from enum import Enum
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field
 # Cannot be run standalone because of these imports
 from app.utils.paths import Paths
 #from app.utils.model_settings import Model_Settings
+from app.core.process_data import DataProcessor
 
 '''dtype={
 	"Location": str,
@@ -94,21 +96,268 @@ class PrerequisitData(BaseModel):
 
 	@staticmethod
 	def test_data():
-		return np.array([[
-			15.6,27.8,0.2,48.0,4.0,7.0,73.0,98.0,1011.7052631578947,1009.5322368421052,0.0,0.0,22.7,20.1,4362,2011,12,8,
-			16.4,20.1,13.6,31.0,9.0,7.0,99.0,94.0,1011.7021052631579,1009.5278947368421,0.0,0.0,16.7,19.1,4363,2011,12,8,
-			16.3,24.6,1.8,30.0,15.0,4.0,75.0,51.0,1011.698947368421,1009.5235526315789,0.0,0.0,17.9,23.7,4364,2011,12,8,
-			13.2,23.8,2.0,26.0,11.0,11.0,65.0,50.0,1011.6957894736843,1009.5192105263159,0.0,0.0,18.5,21.7,4365,2011,12,8,
-			15.3,24.3,0.0,24.0,2.0,4.0,64.0,47.0,1011.6926315789474,1009.5148684210527,0.0,0.0,18.5,23.6,4366,2011,12,8,
-			11.9,22.4,0.0,28.0,9.0,6.0,67.0,60.0,1011.6894736842105,1009.5105263157895,0.0,0.0,19.6,21.4,4367,2011,12,8,
-			14.8,25.3,0.0,22.0,2.0,9.0,74.0,47.0,1011.6863157894737,1009.5061842105264,0.0,0.0,18.3,23.6,4368,2011,12,8,
-			13.5,25.1,0.0,26.0,4.0,9.0,85.0,48.0,1011.6831578947368,1009.5018421052632,0.0,0.0,17.4,24.3,4369,2011,12,8,
-			17.3,24.9,0.8,31.0,4.0,4.0,98.0,76.0,1011.6800000000001,1009.4975000000001,0.0,0.0,18.6,24.8,4370,2011,12,8,
-			16.7,25.0,28.4,20.0,13.0,6.0,80.0,61.0,1011.6768421052632,1009.4931578947369,0.0,0.0,20.4,23.5,4371,2011,12,8,
-			17.5,25.4,0.0,22.0,2.0,7.0,80.0,63.0,1011.6736842105263,1009.4888157894737,0.0,0.0,20.1,22.8,4372,2011,12,8,
-			17.5,23.3,0.6,15.0,11.0,7.0,98.0,84.0,1011.6705263157895,1009.4844736842106,0.0,0.0,18.1,22.3,4373,2011,12,8,
-			17.7,27.8,6.8,30.0,4.0,17.0,99.0,67.0,1011.6673684210526,1009.4801315789474,0.0,0.0,19.6,26.9,4374,2011,12,8,
-		]])
+		return PrerequisitData(
+			Day0=DayData(
+				MinTemp=15.6,
+				MaxTemp=27.8,
+				Rainfall=0.2,
+				WindGustSpeed=48.0,
+				WindSpeed9am=4.0,
+				WindSpeed3pm=7.0,
+				Humidity9am=73.0,
+				Humidity3pm=98.0,
+				Pressure9am=1011.7052631578947,
+				Pressure3pm=1009.5322368421052,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=22.7,
+				Temp3pm=20.1,
+				DayIndex=4362,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day1=DayData(
+				MinTemp=16.4,
+				MaxTemp=20.1,
+				Rainfall=13.6,
+				WindGustSpeed=31.0,
+				WindSpeed9am=9.0,
+				WindSpeed3pm=7.0,
+				Humidity9am=99.0,
+				Humidity3pm=94.0,
+				Pressure9am=1011.7021052631579,
+				Pressure3pm=1009.5278947368421,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=16.7,
+				Temp3pm=19.1,
+				DayIndex=4363,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day2=DayData(
+				MinTemp=16.3,
+				MaxTemp=24.6,
+				Rainfall=1.8,
+				WindGustSpeed=30.0,
+				WindSpeed9am=15.0,
+				WindSpeed3pm=4.0,
+				Humidity9am=75.0,
+				Humidity3pm=51.0,
+				Pressure9am=1011.698947368421,
+				Pressure3pm=1009.5235526315789,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=17.9,
+				Temp3pm=23.7,
+				DayIndex=4364,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day3=DayData(
+				MinTemp=13.2,
+				MaxTemp=23.8,
+				Rainfall=2.0,
+				WindGustSpeed=26.1,
+				WindSpeed9am=11.0,
+				WindSpeed3pm=11.0,
+				Humidity9am=65.0,
+				Humidity3pm=50.0,
+				Pressure9am=1011.6957894736843,
+				Pressure3pm=1009.5192105263159,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=18.5,
+				Temp3pm=21.7,
+				DayIndex=4365,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day4=DayData(
+				MinTemp=15.3,
+				MaxTemp=24.3,
+				Rainfall=0.0,
+				WindGustSpeed=24.0,
+				WindSpeed9am=2.0,
+				WindSpeed3pm=4.0,
+				Humidity9am=34.0,
+				Humidity3pm=47.0,
+				Pressure9am=1011.6926315789474,
+				Pressure3pm=1009.5148684210527,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=18.5,
+				Temp3pm=23.6,
+				DayIndex=4366,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day5=DayData(
+				MinTemp=11.9,
+				MaxTemp=22.4,
+				Rainfall=0.0,
+				WindGustSpeed=28.0,
+				WindSpeed9am=9.0,
+				WindSpeed3pm=6.0,
+				Humidity9am=67.0,
+				Humidity3pm=60.0,
+				Pressure9am=1011.6894736842105,
+				Pressure3pm=1009.5105263157895,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=19.6,
+				Temp3pm=21.4,
+				DayIndex=4367,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day6=DayData(
+				MinTemp=14.8,
+				MaxTemp=25.3,
+				Rainfall=0.0,
+				WindGustSpeed=22.0,
+				WindSpeed9am=2.0,
+				WindSpeed3pm=9.0,
+				Humidity9am=74.0,
+				Humidity3pm=47.0,
+				Pressure9am=1011.6863157894737,
+				Pressure3pm=1009.5061842105264,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=18.3,
+				Temp3pm=23.6,
+				DayIndex=4368,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day7=DayData(
+				MinTemp=13.5,
+				MaxTemp=25.1,
+				Rainfall=0.0,
+				WindGustSpeed=26.0,
+				WindSpeed9am=4.0,
+				WindSpeed3pm=9.0,
+				Humidity9am=85.0,
+				Humidity3pm=48.0,
+				Pressure9am=1011.6831578947368,
+				Pressure3pm=1009.5018421052632,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=17.4,
+				Temp3pm=24.3,
+				DayIndex=4369,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day8=DayData(
+				MinTemp=17.3,
+				MaxTemp=24.9,
+				Rainfall=0.8,
+				WindGustSpeed=31.0,
+				WindSpeed9am=4.0,
+				WindSpeed3pm=4.0,
+				Humidity9am=98.0,
+				Humidity3pm=76.0,
+				Pressure9am=1011.6800000000001,
+				Pressure3pm=1009.4975000000001,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=18.6,
+				Temp3pm=24.8,
+				DayIndex=4370,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day9=DayData(
+				MinTemp=16.7,
+				MaxTemp=25.0,
+				Rainfall=28.4,
+				WindGustSpeed=20.0,
+				WindSpeed9am=13.0,
+				WindSpeed3pm=6.0,
+				Humidity9am=80.0,
+				Humidity3pm=61.0,
+				Pressure9am=1011.6768421052632,
+				Pressure3pm=1009.4931578947369,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=20.4,
+				Temp3pm=23.5,
+				DayIndex=4371,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day10=DayData(
+				MinTemp=17.5,
+				MaxTemp=25.4,
+				Rainfall=0.0,
+				WindGustSpeed=22.0,
+				WindSpeed9am=2.0,
+				WindSpeed3pm=7.0,
+				Humidity9am=80.0,
+				Humidity3pm=63.0,
+				Pressure9am=1011.6736842105263,
+				Pressure3pm=1009.4888157894737,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=20.1,
+				Temp3pm=22.8,
+				DayIndex=4372,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day11=DayData(
+				MinTemp=17.5,
+				MaxTemp=23.3,
+				Rainfall=0.6,
+				WindGustSpeed=15.0,
+				WindSpeed9am=11.0,
+				WindSpeed3pm=7.0,
+				Humidity9am=98.0,
+				Humidity3pm=84.0,
+				Pressure9am=1011.6705263157895,
+				Pressure3pm=1009.4844736842106,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=18.1,
+				Temp3pm=22.3,
+				DayIndex=4373,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			),
+			Day12=DayData(
+				MinTemp=17.7,
+				MaxTemp=27.8,
+				Rainfall=6.8,
+				WindGustSpeed=30.0,
+				WindSpeed9am=4.0,
+				WindSpeed3pm=17.0,
+				Humidity9am=99.0,
+				Humidity3pm=67.0,
+				Pressure9am=1011.6673684210526,
+				Pressure3pm=1009.4801315789474,
+				Cloud9am=0.0,
+				Cloud3pm=0.0,
+				Temp9am=19.6,
+				Temp3pm=26.9,
+				DayIndex=4374,
+				Year=2011,
+				Month=12,
+				LocationHash=8
+			)
+		)
 
 class WeatherModel():
 	class ModelType(str, Enum):
@@ -141,6 +390,11 @@ class WeatherModel():
 
 	@staticmethod
 	def import_and_split_data():
+		# If the processed dataset doesn't exist, make it
+		if not Path(Paths.processed_dataset).is_file():
+			print('Processed dataset not found, processing...')
+			DataProcessor.process_data()
+
 		# Pandas complains that I'm not using dtype parameter but doing so causes a stack overflow
 		with warnings.catch_warnings(action='ignore'):
 			imported_data = pd.read_csv(
@@ -185,6 +439,11 @@ class WeatherModel():
 
 	@staticmethod
 	def evaluate(_type: ModelType):
+		# If the model doesn't exist, train it
+		if not Path(WeatherModel.select_model_path(_type)).is_file():
+			print('Model not found, training...')
+			WeatherModel.train(_type)
+
 		model: LinearRegression | Ridge | Lasso = joblib.load(
 			WeatherModel.select_model_path(_type)
 		)
@@ -197,6 +456,11 @@ class WeatherModel():
 
 	@staticmethod
 	def predict(_type: ModelType, pre: PrerequisitData):
+		# If the model doesn't exist, train it
+		if not Path(WeatherModel.select_model_path(_type)).is_file():
+			print('Model not found, training...')
+			WeatherModel.train(_type)
+
 		model: LinearRegression | Ridge | Lasso = joblib.load(
 			WeatherModel.select_model_path(_type)
 		)
@@ -204,8 +468,10 @@ class WeatherModel():
 
 	@staticmethod
 	def remove(_type: ModelType):
-		remove(WeatherModel.select_model_path(_type))
+		try:
+			remove(WeatherModel.select_model_path(_type))
+			return { 'Result' : 'Model deleted' }
+		except:
+			return { 'Result' : 'No model found' }
 
-# TODO Predict will call train if no model exists.
-# TODO Train will call process if no dataset exists.
 # TODO Add a startup process that will automatically process, train, and evaluate the models.

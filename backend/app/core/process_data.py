@@ -133,4 +133,8 @@ class DataProcessor:
 
 	@staticmethod
 	def remove_processed_data():
-		remove(Paths.processed_dataset)
+		try:
+			remove(Paths.processed_dataset)
+			return { 'Result' : 'Dataset deleted' }
+		except:
+			return { 'Result' : 'No dataset found' }

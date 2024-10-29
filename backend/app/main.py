@@ -50,8 +50,7 @@ async def data_process():
 @app.get(Paths.api_path + '/data/remove')
 async def data_remove():
 	'''Remove the processed data, used for troubleshooting.'''
-	DataProcessor.remove_processed_data()
-	return { 'Result': 'Finished' }
+	return { 'Result': DataProcessor.remove_processed_data() }
 
 @app.get(Paths.api_path + '/models/{_type}/train')
 async def model_train(_type: WeatherModel.ModelType):
@@ -63,10 +62,11 @@ async def model_evaluate(_type: WeatherModel.ModelType):
 	return WeatherModel.evaluate(_type)
 
 @app.post(Paths.api_path + '/models/{_type}/predict')
-async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
+def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
 	try:
 		result = WeatherModel.predict(_type, prerequisit)
-		return {
+		return { 'Result' : {
+
 			'MinTemp': result[0],
 			'MaxTemp': result[1],
 			'Rainfall': result[2],
@@ -85,22 +85,26 @@ async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitD
 			'Year': result[15],
 			'Month': result[16],
 			'LocationHash': result[17],
-		}
+		} }
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
+@app.post(Paths.api_path + '/models/{_type}/predict-test-data')
+async def model_predict_test(_type: WeatherModel.ModelType):
+	return model_predict(_type, PrerequisitData.test_data())
+
 @app.get(Paths.api_path + '/models/{_type}/remove')
 async def model_remove(_type: WeatherModel.ModelType):
-	WeatherModel.remove(_type)
-	return { 'Result': 'Finished' }
+	return { 'Result': WeatherModel.remove(_type) }
 
 @app.get(Paths.api_path + '/clean_all')
 async def clean_all():
-	DataProcessor.remove_processed_data()
-	WeatherModel.remove(WeatherModel.ModelType.Linear)
-	WeatherModel.remove(WeatherModel.ModelType.Ridge)
-	WeatherModel.remove(WeatherModel.ModelType.Lasso)
-	return { 'Result': 'Finished' }
+	return { 'Result' : {
+		'Dataset' : DataProcessor.remove_processed_data(),
+		'Linear' : WeatherModel.remove(WeatherModel.ModelType.Linear),
+		'Ridge' : WeatherModel.remove(WeatherModel.ModelType.Ridge),
+		'Lasso' : WeatherModel.remove(WeatherModel.ModelType.Lasso),
+	} }
 
 @app.get(Paths.api_path + '/test/number/{_num}/{_message}')
 async def show_number_message(_num: int, _message: str):
