@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "**MAKE SURE YOU ARE IN THE `backend` FOLDER**\r ```bash\r cd backend\r ```\r ### Create the virtual environment.\r ```bash\r python -m venv .venv\r ```\r ### Activate the virtual envionment.\r - Windows:\r ```bash\r .\\.venv\\Scripts\\Activate.ps1\r ```\r - Linux, MacOS\r ```bash\r source ./.venv/bin/activate\r ```\r ### Install the requirements\r ```bash\r pip install -r requirements.txt\r ```\r ### Select the environment\r 1. With the main.py file open, at the bottom right click the text that says the python version (the right one).\r 2. Select 'Enter interpreter path...'\r 3. Enter `./backend/.venv/bin/python3.12`",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0"
+  }
+}

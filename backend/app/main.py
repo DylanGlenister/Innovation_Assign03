@@ -1,4 +1,5 @@
 import time
+import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,7 @@ from app.utils.paths import Paths
 from app.utils.location import Location
 from app.core.process_data import DataProcessor
 from app.core.model import WeatherModel, PrerequisitData
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -114,3 +116,14 @@ async def show_number_message(_num: int, _message: str):
 @app.get(Paths.api_path + '/test/query')
 async def show_query_params(bool: bool, integer: int = 0, string: str = ''):
 	return { 'Bool': bool, 'Integer': integer, 'String': string }
+
+
+# Add this new route to serve CSV files from the 'models' directory
+@app.get("/data/{file_name}")
+async def get_csv(file_name: str):
+    """Serve CSV files from the models directory."""
+    file_path = os.path.join(os.path.dirname(__file__), "models", file_name)
+    if os.path.exists(file_path) and file_name.endswith(".csv"):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="File not found or invalid file type")
+
