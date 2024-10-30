@@ -11,7 +11,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 from pydantic import BaseModel, Field
 # Cannot be run standalone because of these imports
 from app.utils.paths import Paths
-#from app.utils.model_settings import Model_Settings
 from app.core.process_data import DataProcessor
 
 '''dtype={
@@ -61,7 +60,6 @@ class DayData(BaseModel):
 	def tolist(_self):
 		return [_self.MinTemp, _self.MaxTemp, _self.Rainfall, _self.WindGustSpeed, _self.WindSpeed9am, _self.WindSpeed3pm, _self.Humidity9am, _self.Humidity3pm, _self.Pressure9am, _self.Pressure3pm, _self.Cloud9am, _self.Cloud3pm, _self.Temp9am, _self.Temp3pm, _self.DayIndex, _self.Year, _self.Month, _self.LocationHash]
 
-# TODO Eventually I would like the number of days to be dynamic, based on Model_Settings.block_size
 class PrerequisitData(BaseModel):
 	Day0: DayData = Field(..., description='A day of weather data.')
 	Day1: DayData = Field(..., description='A day of weather data.')

@@ -2,10 +2,11 @@ import pandas as pd
 from os import remove
 from datetime import datetime, date
 from app.utils.paths import Paths
-from app.utils.model_settings import Model_Settings
 from app.utils.location import Location
 
 class DataProcessor:
+	block_size = 13
+
 	@staticmethod
 	def process_data():
 		print(f'Processing data.')
@@ -108,7 +109,7 @@ class DataProcessor:
 			stripped.set_index(index, inplace=True)
 			return stripped
 
-		data = reconfigure(data, Model_Settings.block_size)
+		data = reconfigure(data, DataProcessor.block_size)
 
 		def purge(_df: pd.DataFrame) -> pd.DataFrame:
 			'''Purge blocks with less than 10 elements in them.'''
