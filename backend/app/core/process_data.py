@@ -63,11 +63,7 @@ class DataProcessor:
 		# Remove the date as well for the same reason
 		data.drop(columns=['Date'], inplace=True)
 
-		def hash_location(_location: str) -> int:
-			'''Converts the string into bytes then reencodes it to an int.'''
-			return Location.switch(_location)
-
-		data['LocationHash'] = data['Location'].apply(hash_location)
+		data['LocationHash'] = data['Location'].apply(Location.switch_loc)
 
 		def reconfigure(_df: pd.DataFrame, _block_size=5):
 			'''Splits the rows into blocks up to a max size defined by Model_Settings.block_size. Blocks are per location. Uses Location, Date, Block, and Id as the labels for a multiIndex DataFrame.'''
@@ -118,7 +114,7 @@ class DataProcessor:
 
 			# Identify unfit blocks (those with less than Model_Settings.block_size)
 			# Pylance mistakes this for an error
-			unfit = block_sizes[block_sizes < Model_Settings.block_size].index.to_list() # type: ignore
+			unfit = block_sizes[block_sizes < DataProcessor.block_size].index.to_list() # type: ignore
 
 			# Boolean indexing to drop multiple combinations
 			df_filtered = _df[~(
