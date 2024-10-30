@@ -11,7 +11,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 from pydantic import BaseModel, Field
 # Cannot be run standalone because of these imports
 from app.utils.paths import Paths
-#from app.utils.model_settings import Model_Settings
 from app.core.process_data import DataProcessor
 
 '''dtype={
@@ -61,7 +60,6 @@ class DayData(BaseModel):
 	def tolist(_self):
 		return [_self.MinTemp, _self.MaxTemp, _self.Rainfall, _self.WindGustSpeed, _self.WindSpeed9am, _self.WindSpeed3pm, _self.Humidity9am, _self.Humidity3pm, _self.Pressure9am, _self.Pressure3pm, _self.Cloud9am, _self.Cloud3pm, _self.Temp9am, _self.Temp3pm, _self.DayIndex, _self.Year, _self.Month, _self.LocationHash]
 
-# TODO Eventually I would like the number of days to be dynamic, based on Model_Settings.block_size
 class PrerequisitData(BaseModel):
 	Day0: DayData = Field(..., description='A day of weather data.')
 	Day1: DayData = Field(..., description='A day of weather data.')
@@ -392,7 +390,7 @@ class WeatherModel():
 	def import_and_split_data():
 		# If the processed dataset doesn't exist, make it
 		if not Path(Paths.processed_dataset).is_file():
-			print('Processed dataset not found, processing...')
+			print('Processed dataset not found.')
 			DataProcessor.process_data()
 
 		# Pandas complains that I'm not using dtype parameter but doing so causes a stack overflow
@@ -429,6 +427,7 @@ class WeatherModel():
 
 	@staticmethod
 	def train(_type: ModelType):
+		print(f'Training {_type} model.')
 		model = WeatherModel.create_model(_type)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		model.fit(X_train, Y_train)
@@ -439,9 +438,10 @@ class WeatherModel():
 
 	@staticmethod
 	def evaluate(_type: ModelType):
+		print(f'Evaluating {_type} model.')
 		# If the model doesn't exist, train it
 		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found, training...')
+			print('Model not found.')
 			WeatherModel.train(_type)
 
 		model: LinearRegression | Ridge | Lasso = joblib.load(
@@ -456,9 +456,10 @@ class WeatherModel():
 
 	@staticmethod
 	def predict(_type: ModelType, pre: PrerequisitData):
+		print(f'Predicting with {_type} model.')
 		# If the model doesn't exist, train it
 		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found, training...')
+			print('Model not found.')
 			WeatherModel.train(_type)
 
 		model: LinearRegression | Ridge | Lasso = joblib.load(
@@ -468,10 +469,17 @@ class WeatherModel():
 
 	@staticmethod
 	def remove(_type: ModelType):
+		print(f'Removing {_type} model.')
 		try:
 			remove(WeatherModel.select_model_path(_type))
 			return { 'Result' : 'Model deleted' }
 		except:
 			return { 'Result' : 'No model found' }
 
-# TODO Add a startup process that will automatically process, train, and evaluate the models.
+	@staticmethod
+	def guarantee_model(_type: ModelType):
+		if not Path(WeatherModel.select_model_path(_type)).is_file():
+			print('Model not found.')
+			WeatherModel.train(_type)
+
+# TODO A model should only be loaded from file if it does not exist in memory.

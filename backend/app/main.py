@@ -3,13 +3,24 @@ import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.utils.paths import Paths
 from app.utils.location import Location
 from app.core.process_data import DataProcessor
 from app.core.model import WeatherModel, PrerequisitData
 from fastapi.responses import FileResponse
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	# Startup
+	DataProcessor.guarantee_data()
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Linear)
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Ridge)
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Lasso)
+	yield
+	# Shutdown
+
+app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware, required for frontend connection to work
 app.add_middleware(
@@ -43,28 +54,45 @@ async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { 'Message': 'Hello world' }
 
-@app.get(Paths.api_path + '/data/process')
-async def data_process():
-	'''Process the data to be used with the model. Will only need to be done once.'''
-	DataProcessor.process_data()
-	return { 'Result': 'Finished' }
-
-@app.get(Paths.api_path + '/data/remove')
-async def data_remove():
-	'''Remove the processed data, used for troubleshooting.'''
-	return { 'Result': DataProcessor.remove_processed_data() }
-
-@app.get(Paths.api_path + '/models/{_type}/train')
-async def model_train(_type: WeatherModel.ModelType):
-	WeatherModel.train(_type)
-	return { 'Result': 'Success' }
-
 @app.get(Paths.api_path + '/models/{_type}/evaluate')
 async def model_evaluate(_type: WeatherModel.ModelType):
+	'''Evaluate the chosen weather model.'''
 	return WeatherModel.evaluate(_type)
 
+@app.get(Paths.api_path + '/models/{_type}/predict-test')
+async def model_predict_test(_type: WeatherModel.ModelType):
+	'''A test prediction for validation.'''
+	try:
+		result = WeatherModel.predict(_type, PrerequisitData.test_data())
+		return { 'Result' : {
+
+			'MinTemp': result[0],
+			'MaxTemp': result[1],
+			'Rainfall': result[2],
+			'WindGustSpeed': result[3],
+			'WindSpeed9am': result[4],
+			'WindSpeed3pm': result[5],
+			'Humidity9am': result[6],
+			'Humidity3pm': result[7],
+			'Pressure9am': result[8],
+			'Pressure3pm': result[9],
+			'Cloud9am': result[10],
+			'Cloud3pm': result[11],
+			'Temp9am': result[12],
+			'Temp3pm': result[13],
+			'DayIndex': result[14],
+			'Year': result[15],
+			'Month': result[16],
+			'LocationHash': result[17],
+		} }
+	except Exception as e:
+		raise HTTPException(status_code=500, detail='Internal server error')
+
 @app.post(Paths.api_path + '/models/{_type}/predict')
-def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
+async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
+	'''Request a result from a chosen weather model.
+	A model will be trained if it does not exist yet.
+	'''
 	try:
 		result = WeatherModel.predict(_type, prerequisit)
 		return { 'Result' : {
@@ -91,31 +119,47 @@ def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
-@app.post(Paths.api_path + '/models/{_type}/predict-test-data')
-async def model_predict_test(_type: WeatherModel.ModelType):
-	return model_predict(_type, PrerequisitData.test_data())
+@app.put(Paths.api_path + '/data/process')
+async def data_process():
+	'''Process the data to be used with the model.
+	Only needed for troubleshooting.
+	'''
+	DataProcessor.process_data()
+	return { 'Result': 'Finished' }
 
-@app.get(Paths.api_path + '/models/{_type}/remove')
+@app.put(Paths.api_path + '/models/{_type}/train')
+async def model_train(_type: WeatherModel.ModelType):
+	'''Manually train the chosen weather model.
+	Used for troubleshooting.
+	'''
+	WeatherModel.train(_type)
+	return { 'Result': 'Success' }
+
+@app.delete(Paths.api_path + '/data/remove')
+async def data_remove():
+	'''Remove the processed data.
+	Used for troubleshooting.
+	'''
+	return { 'Result': DataProcessor.remove_processed_data() }
+
+@app.delete(Paths.api_path + '/models/{_type}/remove')
 async def model_remove(_type: WeatherModel.ModelType):
+	'''Remove the chosen weather model.
+	Used for troubleshooting.
+	'''
 	return { 'Result': WeatherModel.remove(_type) }
 
-@app.get(Paths.api_path + '/clean_all')
-async def clean_all():
+@app.delete(Paths.api_path + '/remove_all')
+async def remove_all():
+	'''Remove the processed dataset and all model types.
+	Used for troubleshooting.
+	'''
 	return { 'Result' : {
 		'Dataset' : DataProcessor.remove_processed_data(),
 		'Linear' : WeatherModel.remove(WeatherModel.ModelType.Linear),
 		'Ridge' : WeatherModel.remove(WeatherModel.ModelType.Ridge),
 		'Lasso' : WeatherModel.remove(WeatherModel.ModelType.Lasso),
 	} }
-
-@app.get(Paths.api_path + '/test/number/{_num}/{_message}')
-async def show_number_message(_num: int, _message: str):
-	'''For testing; responds with the number and message.'''
-	return { 'Number': _num, 'Message': _message }
-
-@app.get(Paths.api_path + '/test/query')
-async def show_query_params(bool: bool, integer: int = 0, string: str = ''):
-	return { 'Bool': bool, 'Integer': integer, 'String': string }
 
 
 # Add this new route to serve CSV files from the 'models' directory
@@ -126,4 +170,3 @@ async def get_csv(file_name: str):
     if os.path.exists(file_path) and file_name.endswith(".csv"):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="File not found or invalid file type")
-
