@@ -475,5 +475,3 @@ class WeatherModel():
 			return { 'Result' : 'Model deleted' }
 		except:
 			return { 'Result' : 'No model found' }
-
-# TODO Add a startup process that will automatically process, train, and evaluate the models.

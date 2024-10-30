@@ -2,12 +2,23 @@ import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.utils.paths import Paths
 from app.utils.location import Location
 from app.core.process_data import DataProcessor
 from app.core.model import WeatherModel, PrerequisitData
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	# Startup
+	DataProcessor.process_data()
+	WeatherModel.train(WeatherModel.ModelType.Linear)
+	WeatherModel.train(WeatherModel.ModelType.Ridge)
+	WeatherModel.train(WeatherModel.ModelType.Lasso)
+	yield
+	# Shutdown
+
+app = FastAPI(lifespan=lifespan)
 
 # Add CORS middleware, required for frontend connection to work
 app.add_middleware(
