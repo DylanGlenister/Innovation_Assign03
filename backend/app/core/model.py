@@ -475,3 +475,11 @@ class WeatherModel():
 			return { 'Result' : 'Model deleted' }
 		except:
 			return { 'Result' : 'No model found' }
+
+	@staticmethod
+	def guarantee_model(_type: ModelType):
+		if not Path(WeatherModel.select_model_path(_type)).is_file():
+			print('Model not found.')
+			WeatherModel.train(_type)
+
+# TODO A model should only be loaded from file if it does not exist in memory.

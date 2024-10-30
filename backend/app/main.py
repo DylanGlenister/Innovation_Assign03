@@ -12,9 +12,9 @@ from app.core.model import WeatherModel, PrerequisitData
 async def lifespan(app: FastAPI):
 	# Startup
 	DataProcessor.guarantee_data()
-	WeatherModel.train(WeatherModel.ModelType.Linear)
-	WeatherModel.train(WeatherModel.ModelType.Ridge)
-	WeatherModel.train(WeatherModel.ModelType.Lasso)
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Linear)
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Ridge)
+	WeatherModel.guarantee_model(WeatherModel.ModelType.Lasso)
 	yield
 	# Shutdown
 
