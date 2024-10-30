@@ -21,15 +21,10 @@ const cityStateMapping = {
   "ACT": ["Canberra", "Tuggeranong", "Mount Ginini"]
 };
 
-export default function TempLineChart() {
+export default function HumidityLineChart() {
   const [dataset, setDataset] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState({ month: 6, year: 2008 }); // Default to July 2008
   const [selectedCity, setSelectedCity] = useState("Melbourne"); // Default city
-
-  // Flatten city-state mapping to create a list of cities
-  const cities = Object.entries(cityStateMapping).flatMap(([state, cities]) =>
-    cities.map(city => ({ state, city }))
-  );
 
   const MIN_YEAR = 2008;
   const MIN_MONTH = 6; // July (0-indexed)
@@ -65,11 +60,11 @@ export default function TempLineChart() {
           const columns = row.split(',');
           const dateStr = columns[0]?.trim();
           const location = columns[1]?.trim();
-          const minTempStr = columns[2]?.trim();
-          const maxTempStr = columns[3]?.trim();
+          const humidity9amStr = columns[13]?.trim(); // Adjust index to match 'Humidity9am' column in your CSV
+          const humidity3pmStr = columns[14]?.trim(); // Adjust index to match 'Humidity3pm' column in your CSV
 
-          const minTemperature = parseFloat(minTempStr);
-          const maxTemperature = parseFloat(maxTempStr);
+          const humidity9am = parseFloat(humidity9amStr);
+          const humidity3pm = parseFloat(humidity3pmStr);
 
           const [day, month, year] = dateStr.split('-');
           const parsedDate = new Date(`${year}-${month}-${day}`);
@@ -77,8 +72,8 @@ export default function TempLineChart() {
           return { 
             date: parsedDate, 
             location,
-            minTemp: minTemperature,
-            maxTemp: maxTemperature
+            humidity9am,
+            humidity3pm
           };
         }).filter(Boolean); // Filter out any null entries
 
@@ -96,8 +91,8 @@ export default function TempLineChart() {
           const entry = filteredData.find(d => d.date.getDate() === day);
           return {
             x: day,
-            minTemp: entry ? entry.minTemp : null,
-            maxTemp: entry ? entry.maxTemp : null,
+            humidity9am: entry ? entry.humidity9am : null,
+            humidity3pm: entry ? entry.humidity3pm : null,
           };
         });
 
@@ -140,7 +135,7 @@ export default function TempLineChart() {
 
   return (
     <div>
-      <h1>Temperature Data by Location</h1>
+      <h1>Humidity Data by Location</h1>
       <div>
         <label>City: </label>
         <select onChange={handleCityChange} value={selectedCity}>
@@ -175,8 +170,8 @@ export default function TempLineChart() {
         dataset={dataset}
         xAxis={[{ dataKey: 'x', label: 'Day' }]}
         series={[
-          { dataKey: 'minTemp', label: 'Min Temperature' },
-          { dataKey: 'maxTemp', label: 'Max Temperature' }
+          { dataKey: 'humidity9am', label: 'Humidity 9AM (%)' },
+          { dataKey: 'humidity3pm', label: 'Humidity 3PM (%)' }
         ]}
         height={300}
         margin={{ left: 30, right: 30, top: 30, bottom: 30 }}
