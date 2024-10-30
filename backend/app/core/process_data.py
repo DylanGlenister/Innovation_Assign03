@@ -1,13 +1,16 @@
 import pandas as pd
 from os import remove
+from pathlib import Path
 from datetime import datetime, date
 from app.utils.paths import Paths
-from app.utils.model_settings import Model_Settings
 from app.utils.location import Location
 
 class DataProcessor:
+	block_size = 13
+
 	@staticmethod
 	def process_data():
+		print(f'Processing data.')
 		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
@@ -61,11 +64,7 @@ class DataProcessor:
 		# Remove the date as well for the same reason
 		data.drop(columns=['Date'], inplace=True)
 
-		def hash_location(_location: str) -> int:
-			'''Converts the string into bytes then reencodes it to an int.'''
-			return Location.switch(_location)
-
-		data['LocationHash'] = data['Location'].apply(hash_location)
+		data['LocationHash'] = data['Location'].apply(Location.switch_loc)
 
 		def reconfigure(_df: pd.DataFrame, _block_size=5):
 			'''Splits the rows into blocks up to a max size defined by Model_Settings.block_size. Blocks are per location. Uses Location, Date, Block, and Id as the labels for a multiIndex DataFrame.'''
@@ -107,7 +106,7 @@ class DataProcessor:
 			stripped.set_index(index, inplace=True)
 			return stripped
 
-		data = reconfigure(data, Model_Settings.block_size)
+		data = reconfigure(data, DataProcessor.block_size)
 
 		def purge(_df: pd.DataFrame) -> pd.DataFrame:
 			'''Purge blocks with less than 10 elements in them.'''
@@ -116,7 +115,7 @@ class DataProcessor:
 
 			# Identify unfit blocks (those with less than Model_Settings.block_size)
 			# Pylance mistakes this for an error
-			unfit = block_sizes[block_sizes < Model_Settings.block_size].index.to_list() # type: ignore
+			unfit = block_sizes[block_sizes < DataProcessor.block_size].index.to_list() # type: ignore
 
 			# Boolean indexing to drop multiple combinations
 			df_filtered = _df[~(
@@ -133,8 +132,19 @@ class DataProcessor:
 
 	@staticmethod
 	def remove_processed_data():
+		print(f'Removing processed data.')
 		try:
 			remove(Paths.processed_dataset)
 			return { 'Result' : 'Dataset deleted' }
 		except:
 			return { 'Result' : 'No dataset found' }
+
+	@staticmethod
+	def guarantee_data():
+		'''Will only process data if the result file does not exists.
+
+		Does not validate the quality of the file.
+		'''
+		if not Path(Paths.processed_dataset).is_file():
+			print('Processed dataset file not found.')
+			DataProcessor.process_data()
