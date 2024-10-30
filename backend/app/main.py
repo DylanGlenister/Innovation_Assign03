@@ -1,6 +1,6 @@
 import time
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.utils.paths import Paths
@@ -85,6 +85,10 @@ async def model_predict_test(_type: WeatherModel.ModelType):
 		} }
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
+
+@app.get(Paths.api_path + 'dataset')
+async def get_dataset():
+	return FileResponse(Paths.processed_dataset)
 
 @app.post(Paths.api_path + '/models/{_type}/predict')
 async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
