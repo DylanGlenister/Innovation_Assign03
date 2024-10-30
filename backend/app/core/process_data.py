@@ -60,7 +60,7 @@ class DataProcessor:
 		data['Year'] = data['Date'].apply(extract_year)
 		data['Month'] = data['Date'].apply(extract_month)
 		# Don't include the day to make it harder for the model to overfit
-		#data['Day'] = data['Date'].apply(extract_day)
+		data['Day'] = data['Date'].apply(extract_day)
 		# Remove the date as well for the same reason
 		data.drop(columns=['Date'], inplace=True)
 
