@@ -8,6 +8,7 @@ from app.utils.location import Location
 class DataProcessor:
 	@staticmethod
 	def process_data():
+		print(f'Processing data.')
 		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
@@ -133,6 +134,7 @@ class DataProcessor:
 
 	@staticmethod
 	def remove_processed_data():
+		print(f'Removing processed data.')
 		try:
 			remove(Paths.processed_dataset)
 			return { 'Result' : 'Dataset deleted' }

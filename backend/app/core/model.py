@@ -392,7 +392,7 @@ class WeatherModel():
 	def import_and_split_data():
 		# If the processed dataset doesn't exist, make it
 		if not Path(Paths.processed_dataset).is_file():
-			print('Processed dataset not found, processing...')
+			print('Processed dataset not found.')
 			DataProcessor.process_data()
 
 		# Pandas complains that I'm not using dtype parameter but doing so causes a stack overflow
@@ -429,6 +429,7 @@ class WeatherModel():
 
 	@staticmethod
 	def train(_type: ModelType):
+		print(f'Training {_type} model.')
 		model = WeatherModel.create_model(_type)
 		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
 		model.fit(X_train, Y_train)
@@ -439,9 +440,10 @@ class WeatherModel():
 
 	@staticmethod
 	def evaluate(_type: ModelType):
+		print(f'Evaluating {_type} model.')
 		# If the model doesn't exist, train it
 		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found, training...')
+			print('Model not found.')
 			WeatherModel.train(_type)
 
 		model: LinearRegression | Ridge | Lasso = joblib.load(
@@ -456,9 +458,10 @@ class WeatherModel():
 
 	@staticmethod
 	def predict(_type: ModelType, pre: PrerequisitData):
+		print(f'Predicting with {_type} model.')
 		# If the model doesn't exist, train it
 		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found, training...')
+			print('Model not found.')
 			WeatherModel.train(_type)
 
 		model: LinearRegression | Ridge | Lasso = joblib.load(
@@ -468,6 +471,7 @@ class WeatherModel():
 
 	@staticmethod
 	def remove(_type: ModelType):
+		print(f'Removing {_type} model.')
 		try:
 			remove(WeatherModel.select_model_path(_type))
 			return { 'Result' : 'Model deleted' }
