@@ -11,7 +11,7 @@ from app.core.model import WeatherModel, PrerequisitData
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	# Startup
-	DataProcessor.process_data()
+	DataProcessor.guarantee_data()
 	WeatherModel.train(WeatherModel.ModelType.Linear)
 	WeatherModel.train(WeatherModel.ModelType.Ridge)
 	WeatherModel.train(WeatherModel.ModelType.Lasso)

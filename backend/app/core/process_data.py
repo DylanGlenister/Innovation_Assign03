@@ -1,5 +1,6 @@
 import pandas as pd
 from os import remove
+from pathlib import Path
 from datetime import datetime, date
 from app.utils.paths import Paths
 from app.utils.location import Location
@@ -137,3 +138,13 @@ class DataProcessor:
 			return { 'Result' : 'Dataset deleted' }
 		except:
 			return { 'Result' : 'No dataset found' }
+
+	@staticmethod
+	def guarantee_data():
+		'''Will only process data if the result file does not exists.
+
+		Does not validate the quality of the file.
+		'''
+		if not Path(Paths.processed_dataset).is_file():
+			print('Processed dataset file not found.')
+			DataProcessor.process_data()
