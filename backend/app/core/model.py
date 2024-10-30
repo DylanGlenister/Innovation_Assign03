@@ -401,6 +401,8 @@ class WeatherModel():
 				memory_map=True
 			)
 
+		imported_data.drop(columns=['Day'])
+
 		X, Y = WeatherModel.split_into_features_and_target(imported_data)
 		X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 		return X_train, X_test, Y_train, Y_test
