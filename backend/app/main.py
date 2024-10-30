@@ -52,28 +52,11 @@ async def root():
 	'''Displays a message when viewing the root of the website.'''
 	return { 'Message': 'Hello world' }
 
-@app.get(Paths.api_path + '/data/process')
-async def data_process():
-	'''Process the data to be used with the model. Will only need to be done once.'''
-	DataProcessor.process_data()
-	return { 'Result': 'Finished' }
-
-@app.get(Paths.api_path + '/data/remove')
-async def data_remove():
-	'''Remove the processed data, used for troubleshooting.'''
-	return { 'Result': DataProcessor.remove_processed_data() }
-
-@app.get(Paths.api_path + '/models/{_type}/train')
-async def model_train(_type: WeatherModel.ModelType):
-	WeatherModel.train(_type)
-	return { 'Result': 'Success' }
-
-@app.get(Paths.api_path + '/models/{_type}/evaluate')
-async def model_evaluate(_type: WeatherModel.ModelType):
-	return WeatherModel.evaluate(_type)
-
 @app.post(Paths.api_path + '/models/{_type}/predict')
 def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
+	'''Request a result from a chosen weather model.
+	A model will be trained if it does not exist yet.
+	'''
 	try:
 		result = WeatherModel.predict(_type, prerequisit)
 		return { 'Result' : {
@@ -102,26 +85,52 @@ def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
 
 @app.post(Paths.api_path + '/models/{_type}/predict-test-data')
 async def model_predict_test(_type: WeatherModel.ModelType):
+	'''A test prediction for validation.'''
 	return model_predict(_type, PrerequisitData.test_data())
+
+@app.get(Paths.api_path + '/data/process')
+async def data_process():
+	'''Process the data to be used with the model.
+	Only needed for troubleshooting.
+	'''
+	DataProcessor.process_data()
+	return { 'Result': 'Finished' }
+
+@app.get(Paths.api_path + '/data/remove')
+async def data_remove():
+	'''Remove the processed data.
+	Used for troubleshooting.
+	'''
+	return { 'Result': DataProcessor.remove_processed_data() }
+
+@app.get(Paths.api_path + '/models/{_type}/train')
+async def model_train(_type: WeatherModel.ModelType):
+	'''Manually train the chosen weather model.
+	Used for troubleshooting.
+	'''
+	WeatherModel.train(_type)
+	return { 'Result': 'Success' }
+
+@app.get(Paths.api_path + '/models/{_type}/evaluate')
+async def model_evaluate(_type: WeatherModel.ModelType):
+	'''Evaluate the chosen weather model.'''
+	return WeatherModel.evaluate(_type)
 
 @app.get(Paths.api_path + '/models/{_type}/remove')
 async def model_remove(_type: WeatherModel.ModelType):
+	'''Remove the chosen weather model.
+	Used for troubleshooting.
+	'''
 	return { 'Result': WeatherModel.remove(_type) }
 
 @app.get(Paths.api_path + '/clean_all')
 async def clean_all():
+	'''Remove the processed dataset and all model types.
+	Used for troubleshooting.
+	'''
 	return { 'Result' : {
 		'Dataset' : DataProcessor.remove_processed_data(),
 		'Linear' : WeatherModel.remove(WeatherModel.ModelType.Linear),
 		'Ridge' : WeatherModel.remove(WeatherModel.ModelType.Ridge),
 		'Lasso' : WeatherModel.remove(WeatherModel.ModelType.Lasso),
 	} }
-
-@app.get(Paths.api_path + '/test/number/{_num}/{_message}')
-async def show_number_message(_num: int, _message: str):
-	'''For testing; responds with the number and message.'''
-	return { 'Number': _num, 'Message': _message }
-
-@app.get(Paths.api_path + '/test/query')
-async def show_query_params(bool: bool, integer: int = 0, string: str = ''):
-	return { 'Bool': bool, 'Integer': integer, 'String': string }
