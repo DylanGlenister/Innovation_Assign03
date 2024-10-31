@@ -1,4 +1,5 @@
 import time
+import app.core.model as wm
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,15 +7,14 @@ from contextlib import asynccontextmanager
 from app.utils.paths import Paths
 from app.utils.location import Location
 from app.core.process_data import DataProcessor
-from app.core.model import WeatherModel, PrerequisitData
+
+manager = wm.ModelManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	# Startup
 	DataProcessor.guarantee_data()
-	WeatherModel.guarantee_model(WeatherModel.ModelType.Linear)
-	WeatherModel.guarantee_model(WeatherModel.ModelType.Ridge)
-	WeatherModel.guarantee_model(WeatherModel.ModelType.Lasso)
+	manager.guarantee()
 	yield
 	# Shutdown
 
@@ -53,17 +53,22 @@ async def root():
 	return { 'Message': 'Hello world' }
 
 @app.get(Paths.api_path + '/models/{_type}/evaluate')
-async def model_evaluate(_type: WeatherModel.ModelType):
-	'''Evaluate the chosen weather model.'''
-	return WeatherModel.evaluate(_type)
+async def model_evaluate(_type: wm.ModelType):
+	'''Evaluate the chosen weather model.
+
+	A model will be trained if it does not exist yet.
+	'''
+	return manager.oftype(_type).evaluate()
 
 @app.get(Paths.api_path + '/models/{_type}/predict-test')
-async def model_predict_test(_type: WeatherModel.ModelType):
-	'''A test prediction for validation.'''
-	try:
-		result = WeatherModel.predict(_type, PrerequisitData.test_data())
-		return { 'Result' : {
+async def model_predict_test(_type: wm.ModelType):
+	'''A test prediction for validation.
 
+	A model will be trained if it does not exist yet.
+	'''
+	try:
+		result = manager.oftype(_type).predict(wm.PrerequisitData.test_data())
+		return { 'Result' : {
 			'MinTemp': result[0],
 			'MaxTemp': result[1],
 			'Rainfall': result[2],
@@ -86,19 +91,24 @@ async def model_predict_test(_type: WeatherModel.ModelType):
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
-@app.get(Paths.api_path + 'dataset')
+@app.get(Paths.api_path + '/dataset')
 async def get_dataset():
+	'''Return the entire processed dataset.
+
+	This is really bad and I would like to remove this before submitting.
+	A better solution would be to request a location with a date range.
+	'''
 	return FileResponse(Paths.processed_dataset)
 
 @app.post(Paths.api_path + '/models/{_type}/predict')
-async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitData):
+async def model_predict(_type: wm.ModelType, _prerequisit: wm.PrerequisitData):
 	'''Request a result from a chosen weather model.
+
 	A model will be trained if it does not exist yet.
 	'''
 	try:
-		result = WeatherModel.predict(_type, prerequisit)
+		result = manager.oftype(_type).predict(_prerequisit)
 		return { 'Result' : {
-
 			'MinTemp': result[0],
 			'MaxTemp': result[1],
 			'Rainfall': result[2],
@@ -124,41 +134,46 @@ async def model_predict(_type: WeatherModel.ModelType, prerequisit: PrerequisitD
 @app.put(Paths.api_path + '/data/process')
 async def data_process():
 	'''Process the data to be used with the model.
-	Only needed for troubleshooting.
+
+	Used for troubleshooting.
 	'''
 	DataProcessor.process_data()
 	return { 'Result': 'Finished' }
 
 @app.put(Paths.api_path + '/models/{_type}/train')
-async def model_train(_type: WeatherModel.ModelType):
+async def model_train(_type: wm.ModelType):
 	'''Manually train the chosen weather model.
+
 	Used for troubleshooting.
 	'''
-	WeatherModel.train(_type)
+	manager.oftype(_type).train()
 	return { 'Result': 'Success' }
 
-@app.delete(Paths.api_path + '/data/remove')
-async def data_remove():
-	'''Remove the processed data.
+@app.delete(Paths.api_path + '/data/delete')
+async def processed_dataset_delete():
+	'''Delete the processed data.
+
 	Used for troubleshooting.
 	'''
 	return { 'Result': DataProcessor.remove_processed_data() }
 
-@app.delete(Paths.api_path + '/models/{_type}/remove')
-async def model_remove(_type: WeatherModel.ModelType):
-	'''Remove the chosen weather model.
+@app.delete(Paths.api_path + '/models/{_type}/delete')
+async def model_delete(_type: wm.ModelType):
+	'''Delete the chosen weather model.
+
 	Used for troubleshooting.
 	'''
-	return { 'Result': WeatherModel.remove(_type) }
+	return { 'Result': manager.delete(_type) }
 
-@app.delete(Paths.api_path + '/remove_all')
-async def remove_all():
-	'''Remove the processed dataset and all model types.
+@app.delete(Paths.api_path + '/delete_all')
+async def delete_all():
+	'''Delete the processed dataset and all model types.
+
 	Used for troubleshooting.
 	'''
 	return { 'Result' : {
 		'Dataset' : DataProcessor.remove_processed_data(),
-		'Linear' : WeatherModel.remove(WeatherModel.ModelType.Linear),
-		'Ridge' : WeatherModel.remove(WeatherModel.ModelType.Ridge),
-		'Lasso' : WeatherModel.remove(WeatherModel.ModelType.Lasso),
+		'Linear' : manager.delete(wm.ModelType.Linear),
+		'Ridge' : manager.delete(wm.ModelType.Ridge),
+		'Lasso' : manager.delete(wm.ModelType.Lasso),
 	} }

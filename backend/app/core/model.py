@@ -357,27 +357,74 @@ class PrerequisitData(BaseModel):
 			)
 		)
 
-class WeatherModel():
-	class ModelType(str, Enum):
-		Linear = 'linear',
-		Ridge = 'ridge',
-		Lasso = 'lasso'
+class ModelType(str, Enum):
+	Linear = 'linear',
+	Ridge = 'ridge',
+	Lasso = 'lasso'
+
+class ModelManager():
+	class __Underlying():
+		def __init__(_self, _type: ModelType):
+			'''Initial creation of the object.'''
+			_self.model: LinearRegression | Ridge | Lasso
+			_self.type = _type
+
+		def guarantee(_self):
+			'''Will either load a model from file or create and train a new one.'''
+			if not Path(ModelManager.select_model_path(_self.type)).is_file():
+				print(f'{_self.type} not found.')
+				_self.train()
+			else:
+				print(f'{_self.type} found.')
+				_self.model = joblib.load(
+					ModelManager.select_model_path(_self.type)
+				)
+
+		def train(_self):
+			'''Import the dataset and train the model.
+
+			The model will be saved.
+			'''
+			_self.model = ModelManager.create_model(_self.type)
+			print(f'Training {_self.type} model.')
+			X_train, X_test, Y_train, Y_test = ModelManager.import_and_split_data()
+			_self.model.fit(X_train, Y_train)
+			joblib.dump(
+				_self.model,
+				ModelManager.select_model_path(_self.type)
+			)
+
+		def evaluate(_self):
+			'''Evaluate the performance of the model.'''
+			print(f'Evaluating {_self.type} model.')
+			_self.guarantee()
+			X_train, X_test, Y_train, Y_test = ModelManager.import_and_split_data()
+			y_pred = _self.model.predict(X_test)
+			return {
+				'Mean Squared Error': f'{mean_squared_error(Y_test, y_pred):.2f}',
+				'R^2 Score': f'{r2_score(Y_test, y_pred):.2f}'
+			}
+
+		def predict(_self, _pre: PrerequisitData):
+			print(f'Predicting with {_self.type} model.')
+			_self.guarantee()
+			return _self.model.predict(_pre.tolist()).tolist()[0]
 
 	@staticmethod
-	def divide_group(_group: pd.DataFrame):
+	def __divide_group(_group: pd.DataFrame):
 		'''Private method. Split up the group into features and a target.'''
 		features = _group.iloc[:-1]  # First rows as features
 		target = _group.iloc[-1:]     # Last row as the target
 		return features, target
 
 	@staticmethod
-	def split_into_features_and_target(_df: pd.DataFrame):
+	def __split_into_features_and_target(_df: pd.DataFrame):
 		'''Split a dataframe with groups into features and targets lists.'''
 		features_list = []
 		targets_list = []
 
 		for _, group in _df.groupby(['Location', 'Block'], sort=False):
-			features, target = WeatherModel.divide_group(group)
+			features, target = ModelManager.__divide_group(group)
 			features_list.append(features.values.flatten())  # Flatten the features into one row
 			targets_list.append(target.values[0])  # Single target value
 
@@ -401,87 +448,56 @@ class WeatherModel():
 				memory_map=True
 			)
 
-		imported_data.drop(columns=['Day'])
+		imported_data.drop(columns=['Day'], inplace=True)
 
-		X, Y = WeatherModel.split_into_features_and_target(imported_data)
+		X, Y = ModelManager.__split_into_features_and_target(imported_data)
 		X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 		return X_train, X_test, Y_train, Y_test
 
 	@staticmethod
 	def create_model(_type: ModelType):
 		match _type:
-			case WeatherModel.ModelType.Linear:
+			case ModelType.Linear:
 				return LinearRegression()
-			case WeatherModel.ModelType.Ridge:
+			case ModelType.Ridge:
 				return Ridge()
-			case WeatherModel.ModelType.Lasso:
+			case ModelType.Lasso:
 				return Lasso()
 
 	@staticmethod
 	def select_model_path(_type: ModelType):
 		match _type:
-			case WeatherModel.ModelType.Linear:
+			case ModelType.Linear:
 				return Paths.linear_model
-			case WeatherModel.ModelType.Ridge:
+			case ModelType.Ridge:
 				return Paths.ridge_model
-			case WeatherModel.ModelType.Lasso:
+			case ModelType.Lasso:
 				return Paths.lasso_model
 
 	@staticmethod
-	def train(_type: ModelType):
-		print(f'Training {_type} model.')
-		model = WeatherModel.create_model(_type)
-		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
-		model.fit(X_train, Y_train)
-		joblib.dump(
-			model,
-			WeatherModel.select_model_path(_type)
-		)
-
-	@staticmethod
-	def evaluate(_type: ModelType):
-		print(f'Evaluating {_type} model.')
-		# If the model doesn't exist, train it
-		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found.')
-			WeatherModel.train(_type)
-
-		model: LinearRegression | Ridge | Lasso = joblib.load(
-			WeatherModel.select_model_path(_type)
-		)
-		X_train, X_test, Y_train, Y_test = WeatherModel.import_and_split_data()
-		y_pred = model.predict(X_test)
-		return {
-			'Mean Squared Error': f'{mean_squared_error(Y_test, y_pred):.2f}',
-			'R^2 Score': f'{r2_score(Y_test, y_pred):.2f}'
-		}
-
-	@staticmethod
-	def predict(_type: ModelType, pre: PrerequisitData):
-		print(f'Predicting with {_type} model.')
-		# If the model doesn't exist, train it
-		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found.')
-			WeatherModel.train(_type)
-
-		model: LinearRegression | Ridge | Lasso = joblib.load(
-			WeatherModel.select_model_path(_type)
-		)
-		return model.predict(pre.tolist()).tolist()[0]
-
-	@staticmethod
-	def remove(_type: ModelType):
+	def delete(_type: ModelType):
 		print(f'Removing {_type} model.')
 		try:
-			remove(WeatherModel.select_model_path(_type))
+			remove(ModelManager.select_model_path(_type))
 			return { 'Result' : 'Model deleted' }
 		except:
 			return { 'Result' : 'No model found' }
 
-	@staticmethod
-	def guarantee_model(_type: ModelType):
-		if not Path(WeatherModel.select_model_path(_type)).is_file():
-			print('Model not found.')
-			WeatherModel.train(_type)
+	def __init__(_self):
+		_self.__linear = ModelManager.__Underlying(ModelType.Linear)
+		_self.__ridge = ModelManager.__Underlying(ModelType.Ridge)
+		_self.__lasso = ModelManager.__Underlying(ModelType.Lasso)
 
-# TODO A model should only be loaded from file if it does not exist in memory.
+	def guarantee(_self):
+		_self.__linear.guarantee()
+		_self.__ridge.guarantee()
+		_self.__lasso.guarantee()
+
+	def oftype(_self, _type: ModelType):
+		match _type:
+			case ModelType.Linear:
+				return _self.__linear
+			case ModelType.Ridge:
+				return _self.__ridge
+			case ModelType.Lasso:
+				return _self.__lasso

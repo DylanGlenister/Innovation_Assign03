@@ -10,7 +10,7 @@ class DataProcessor:
 
 	@staticmethod
 	def process_data():
-		print(f'Processing data.')
+		print('Processing data.')
 		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
