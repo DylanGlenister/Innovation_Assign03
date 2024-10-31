@@ -49,7 +49,53 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.get('/')
 async def root():
 	'''Displays a message when viewing the root of the website.'''
-	return { 'Message': 'Hello world' }
+	return { 'Result': {
+		'Evaluate model': {
+			'Type': 'GET',
+			'Path': Paths.api_path + '/models/{type}/evaluate',
+			'Description': 'Evaluate the chosen weather model.'
+		},
+		'Prediction with model test': {
+			'Type': 'GET',
+			'Path': Paths.api_path + '/models/{type}/predict-test',
+			'Description': 'A test prediction for validation.'
+		},
+		'Get dataset': {
+			'Type': 'GET',
+			'Path': Paths.api_path + '/data',
+			'Description': 'Return the entire processed dataset.'
+		},
+		'Predict with model': {
+			'Type': 'POST',
+			'Path': Paths.api_path + '/models/{type}/predict',
+			'Description': 'Request a result from a chosen weather model.'
+		},
+		'Process dataset': {
+			'Type': 'PUT',
+			'Path': Paths.api_path + '/data/process',
+			'Description': 'Process the data to be used with the model.'
+		},
+		'Train model': {
+			'Type': 'PUT',
+			'Path': Paths.api_path + '/models/{type}/train',
+			'Description': 'Manually train the chosen weather model.'
+		},
+		'Delete dataset': {
+			'Type': 'DELETE',
+			'Path': Paths.api_path + '/data/delete',
+			'Description': 'Delete the processed data.'
+		},
+		'Delete model': {
+			'Type': 'DELETE',
+			'Path': Paths.api_path + '/models/{type}/delete',
+			'Description': 'Delete the chosen weather model.'
+		},
+		'Delete dataset and models': {
+			'Type': 'DELETE',
+			'Path': Paths.api_path + '/delete_all',
+			'Description': 'Delete the processed dataset and all model types.'
+		}
+	} }
 
 @app.get(Paths.api_path + '/models/{_type}/evaluate')
 async def model_evaluate(_type: wm.ModelType):
