@@ -10,7 +10,7 @@ class DataProcessor:
 
 	@staticmethod
 	def process_data():
-		print(f'Processing data.')
+		print('Processing data.')
 		data = pd.read_csv(Paths.raw_dataset)
 		# Remove columns that either has a large amount of missing data or are not suitable for machine learning
 		data.drop(columns=['Sunshine', 'Evaporation', 'WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday', 'RainTomorrow'], inplace=True)
@@ -64,7 +64,7 @@ class DataProcessor:
 		# Remove the date as well for the same reason
 		data.drop(columns=['Date'], inplace=True)
 
-		data['LocationHash'] = data['Location'].apply(Location.switch_loc)
+		data['LocationHash'] = data['Location'].apply(Location.name_to_id)
 
 		def reconfigure(_df: pd.DataFrame, _block_size=5):
 			'''Splits the rows into blocks up to a max size defined by Model_Settings.block_size. Blocks are per location. Uses Location, Date, Block, and Id as the labels for a multiIndex DataFrame.'''
