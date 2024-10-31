@@ -1,5 +1,5 @@
 import React from 'react';
-import TemperatureAnomalyChart from './components/TemperatureAnomalyChart';
+import TemperatureAnomalyChart from './components/TempScatterChart';
 import HumidityLineChart from './components/HumidityLineChart';
 
 function App() {
@@ -15,7 +15,7 @@ function App() {
 
       {/* Humidity Stacked Area Chart Section */}
       <section>
-        <h2>Temperature Trend</h2>
+        <h2>Temperature Trend by Location</h2>
         <TemperatureAnomalyChart />
       </section>
     </div>
