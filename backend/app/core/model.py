@@ -428,7 +428,7 @@ class ModelManager():
 				'DayIndex': result[14].__round__(),
 				'Year': result[15].__round__(),
 				'Month': result[16].__round__(),
-				'LocationHash': Location.id_to_name(result[17].__round__())
+				'Location': Location.id_to_name(result[17].__round__())
 			}
 
 	@staticmethod
