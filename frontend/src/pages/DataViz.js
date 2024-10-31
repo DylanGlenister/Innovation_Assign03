@@ -1,4 +1,3 @@
-// src/pages/DataViz.js
 import React from 'react';
 import HumidityLineChart from '../components/HumidityLineChart';
 import TempScatterChart from '../components/TempScatterChart';

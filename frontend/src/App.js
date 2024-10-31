@@ -6,6 +6,7 @@ import DataViz from './pages/DataViz';
 import HumidityLineChart from './components/HumidityLineChart';
 import TempScatterChart from './components/TempScatterChart';
 
+
 function App() {
   return (
     <Router>
@@ -14,8 +15,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dataviz" element={<DataViz />} />
-          <Route path="/humidity" element={<HumidityLineChart />} />
-          <Route path="/temperature" element={<TempScatterChart />} />
         </Routes>
       </div>
     </Router>

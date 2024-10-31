@@ -1,5 +1,3 @@
-// src/data/cityStateMapping.js
-
 const cityStateMapping = {
     "NSW": [
       "Albury", "Badgerys Creek", "Cobar", "Coffs Harbour", "Moree", "Newcastle", 
