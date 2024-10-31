@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 # Cannot be run standalone because of these imports
 from app.utils.paths import Paths
 from app.core.process_data import DataProcessor
+from app.utils.location import Location
 
 '''dtype={
 	"Location": str,
@@ -55,10 +56,10 @@ class DayData(BaseModel):
 	DayIndex: int = Field(5000, gt=0, description='The number of days since 01/01/2000.')
 	Year: int = Field(2010, gt=2000, description='What year it is.')
 	Month: int = Field(..., ge=1, le=12, description='What month it is a a number (1-12).')
-	LocationHash: int = Field(..., description='A hardcoded value for each location:\n<todo>.')
+	Location: str = Field('Melbourne', description='The name of the location.')
 
 	def tolist(_self):
-		return [_self.MinTemp, _self.MaxTemp, _self.Rainfall, _self.WindGustSpeed, _self.WindSpeed9am, _self.WindSpeed3pm, _self.Humidity9am, _self.Humidity3pm, _self.Pressure9am, _self.Pressure3pm, _self.Cloud9am, _self.Cloud3pm, _self.Temp9am, _self.Temp3pm, _self.DayIndex, _self.Year, _self.Month, _self.LocationHash]
+		return [_self.MinTemp, _self.MaxTemp, _self.Rainfall, _self.WindGustSpeed, _self.WindSpeed9am, _self.WindSpeed3pm, _self.Humidity9am, _self.Humidity3pm, _self.Pressure9am, _self.Pressure3pm, _self.Cloud9am, _self.Cloud3pm, _self.Temp9am, _self.Temp3pm, _self.DayIndex, _self.Year, _self.Month, Location.name_to_id(_self.Location)]
 
 class PrerequisitData(BaseModel):
 	Day0: DayData = Field(..., description='A day of weather data.')
@@ -113,7 +114,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4362,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day1=DayData(
 				MinTemp=16.4,
@@ -133,7 +134,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4363,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day2=DayData(
 				MinTemp=16.3,
@@ -153,7 +154,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4364,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day3=DayData(
 				MinTemp=13.2,
@@ -173,7 +174,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4365,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day4=DayData(
 				MinTemp=15.3,
@@ -193,7 +194,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4366,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day5=DayData(
 				MinTemp=11.9,
@@ -213,7 +214,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4367,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day6=DayData(
 				MinTemp=14.8,
@@ -233,7 +234,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4368,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day7=DayData(
 				MinTemp=13.5,
@@ -253,7 +254,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4369,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day8=DayData(
 				MinTemp=17.3,
@@ -273,7 +274,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4370,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day9=DayData(
 				MinTemp=16.7,
@@ -293,7 +294,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4371,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day10=DayData(
 				MinTemp=17.5,
@@ -313,7 +314,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4372,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day11=DayData(
 				MinTemp=17.5,
@@ -333,7 +334,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4373,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			),
 			Day12=DayData(
 				MinTemp=17.7,
@@ -353,7 +354,7 @@ class PrerequisitData(BaseModel):
 				DayIndex=4374,
 				Year=2011,
 				Month=12,
-				LocationHash=8
+				Location='Penrith'
 			)
 		)
 

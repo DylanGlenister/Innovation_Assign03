@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.utils.paths import Paths
-from app.utils.location import Location
 from app.core.process_data import DataProcessor
 
 manager = wm.ModelManager()

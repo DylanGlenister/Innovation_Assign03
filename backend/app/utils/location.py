@@ -55,7 +55,7 @@ class Location(str, Enum):
 	Uluru = 'Uluru'
 
 	@staticmethod
-	def switch_loc(_loc: str):
+	def name_to_id(_loc: str):
 		match _loc:
 			case 'Albury':
 				return 0
@@ -159,7 +159,7 @@ class Location(str, Enum):
 				return -1
 
 	@staticmethod
-	def switch_id(_id: int):
+	def id_to_name(_id: int):
 		match _id:
 			case 0:
 				return 'Albury'
