@@ -1,24 +1,24 @@
 import React from 'react';
-import TemperatureAnomalyChart from './components/TempScatterChart';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/navbar';
+import Home from './pages/Home';
+import DataViz from './pages/DataViz';
 import HumidityLineChart from './components/HumidityLineChart';
+import TempScatterChart from './components/TempScatterChart';
 
 function App() {
   return (
-    <div>
-      <h1>Victoria Weather Overview</h1>
-
-      {/* Temperature Line Chart Section */}
-      <section>
-        <h2>Humidity Data by Location</h2>
-        <HumidityLineChart />
-      </section>
-
-      {/* Humidity Stacked Area Chart Section */}
-      <section>
-        <h2>Temperature Trend by Location</h2>
-        <TemperatureAnomalyChart />
-      </section>
-    </div>
+    <Router>
+      <div>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dataviz" element={<DataViz />} />
+          <Route path="/humidity" element={<HumidityLineChart />} />
+          <Route path="/temperature" element={<TempScatterChart />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
