@@ -66,27 +66,7 @@ async def model_predict_test(_type: wm.ModelType):
 	A model will be trained if it does not exist yet.
 	'''
 	try:
-		result = manager.oftype(_type).predict(wm.PrerequisitData.test_data())
-		return { 'Result' : {
-			'MinTemp': result[0],
-			'MaxTemp': result[1],
-			'Rainfall': result[2],
-			'WindGustSpeed': result[3],
-			'WindSpeed9am': result[4],
-			'WindSpeed3pm': result[5],
-			'Humidity9am': result[6],
-			'Humidity3pm': result[7],
-			'Pressure9am': result[8],
-			'Pressure3pm': result[9],
-			'Cloud9am': result[10],
-			'Cloud3pm': result[11],
-			'Temp9am': result[12],
-			'Temp3pm': result[13],
-			'DayIndex': result[14],
-			'Year': result[15],
-			'Month': result[16],
-			'LocationHash': result[17],
-		} }
+		return { 'Result' : manager.oftype(_type).predict(wm.PrerequisitData.test_data()) }
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
@@ -106,27 +86,7 @@ async def model_predict(_type: wm.ModelType, _prerequisit: wm.PrerequisitData):
 	A model will be trained if it does not exist yet.
 	'''
 	try:
-		result = manager.oftype(_type).predict(_prerequisit)
-		return { 'Result' : {
-			'MinTemp': result[0],
-			'MaxTemp': result[1],
-			'Rainfall': result[2],
-			'WindGustSpeed': result[3],
-			'WindSpeed9am': result[4],
-			'WindSpeed3pm': result[5],
-			'Humidity9am': result[6],
-			'Humidity3pm': result[7],
-			'Pressure9am': result[8],
-			'Pressure3pm': result[9],
-			'Cloud9am': result[10],
-			'Cloud3pm': result[11],
-			'Temp9am': result[12],
-			'Temp3pm': result[13],
-			'DayIndex': result[14],
-			'Year': result[15],
-			'Month': result[16],
-			'LocationHash': result[17],
-		} }
+		return { 'Result' : manager.oftype(_type).predict(_prerequisit) }
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 

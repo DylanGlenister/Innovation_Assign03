@@ -409,7 +409,27 @@ class ModelManager():
 		def predict(_self, _pre: PrerequisitData):
 			print(f'Predicting with {_self.type} model.')
 			_self.guarantee()
-			return _self.model.predict(_pre.tolist()).tolist()[0]
+			result = _self.model.predict(_pre.tolist()).tolist()[0]
+			return {
+				'MinTemp': result[0].__round__(2),
+				'MaxTemp': result[1].__round__(2),
+				'Rainfall': result[2].__round__(2),
+				'WindGustSpeed': result[3].__round__(),
+				'WindSpeed9am': result[4].__round__(),
+				'WindSpeed3pm': result[5].__round__(),
+				'Humidity9am': result[6].__round__(),
+				'Humidity3pm': result[7].__round__(),
+				'Pressure9am': result[8].__round__(4),
+				'Pressure3pm': result[9].__round__(4),
+				'Cloud9am': result[10].__round__(),
+				'Cloud3pm': result[11].__round__(),
+				'Temp9am': result[12].__round__(2),
+				'Temp3pm': result[13].__round__(2),
+				'DayIndex': result[14].__round__(),
+				'Year': result[15].__round__(),
+				'Month': result[16].__round__(),
+				'LocationHash': Location.id_to_name(result[17].__round__())
+			}
 
 	@staticmethod
 	def __divide_group(_group: pd.DataFrame):
