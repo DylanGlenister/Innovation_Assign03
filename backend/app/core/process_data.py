@@ -135,9 +135,9 @@ class DataProcessor:
 		print(f'Removing processed data.')
 		try:
 			remove(Paths.processed_dataset)
-			return { 'Result' : 'Dataset deleted' }
+			return 'Dataset deleted'
 		except:
-			return { 'Result' : 'No dataset found' }
+			return 'No dataset found'
 
 	@staticmethod
 	def guarantee_data():

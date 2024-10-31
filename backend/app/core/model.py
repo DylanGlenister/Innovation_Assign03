@@ -500,9 +500,9 @@ class ModelManager():
 		print(f'Removing {_type} model.')
 		try:
 			remove(ModelManager.select_model_path(_type))
-			return { 'Result' : 'Model deleted' }
+			return 'Model deleted'
 		except:
-			return { 'Result' : 'No model found' }
+			return 'No model found'
 
 	def __init__(_self):
 		_self.__linear = ModelManager.__Underlying(ModelType.Linear)
