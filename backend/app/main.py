@@ -70,7 +70,7 @@ async def model_predict_test(_type: wm.ModelType):
 	except Exception as e:
 		raise HTTPException(status_code=500, detail='Internal server error')
 
-@app.get(Paths.api_path + '/dataset')
+@app.get(Paths.api_path + '/data')
 async def get_dataset():
 	'''Return the entire processed dataset.
 
