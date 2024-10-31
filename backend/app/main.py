@@ -45,7 +45,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 		content={'Detail': exc.detail, 'Error': 'An error occurred'}
 	)
 
-# I would like this to list all the avaiable api endpoints.
 @app.get('/')
 async def root():
 	'''Displays a message when viewing the root of the website.'''
