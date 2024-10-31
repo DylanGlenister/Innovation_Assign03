@@ -104,7 +104,7 @@ async def model_evaluate(_type: wm.ModelType):
 
 	A model will be trained if it does not exist yet.
 	'''
-	return manager.oftype(_type).evaluate()
+	return { 'Result': manager.oftype(_type).evaluate() }
 
 @app.get(Paths.api_path + '/models/{_type}/predict-test')
 async def model_predict_test(_type: wm.ModelType):
