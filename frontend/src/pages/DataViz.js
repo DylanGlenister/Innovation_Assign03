@@ -4,7 +4,7 @@ import TempScatterChart from '../components/TempScatterChart';
 
 function DataViz() {
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
+    <div id="visualisation_page" style={{ padding: '20px', textAlign: 'center' }}>
       <h1>Data Visualization Page</h1>
       <p>This page displays both temperature and humidity data visualizations.</p>
       
