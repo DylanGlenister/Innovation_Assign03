@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+
 class Location(str, Enum):
 	'''Enum class containing all locations available to the prediction model.'''
 	Albury = 'Albury'
