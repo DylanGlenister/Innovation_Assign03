@@ -1,9 +1,11 @@
-import pandas as pd
+from datetime import date, datetime
 from os import remove
 from pathlib import Path
-from datetime import datetime, date
-from app.utils.paths import Paths
+
+import pandas as pd
 from app.utils.location import Location
+from app.utils.paths import Paths
+
 
 class DataProcessor:
 	block_size = 13

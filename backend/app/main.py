@@ -1,11 +1,12 @@
 import time
-import app.core.model as wm
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.utils.paths import Paths
+
+import app.core.model as wm
 from app.core.process_data import DataProcessor
+from app.utils.paths import Paths
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 
 manager = wm.ModelManager()
 

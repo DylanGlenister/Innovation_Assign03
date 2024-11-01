@@ -1,42 +1,19 @@
-import pandas as pd
-import numpy as np
-import joblib
 import warnings
+from enum import Enum
 from os import remove
 from pathlib import Path
-from enum import Enum
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.metrics import mean_squared_error, r2_score
-from pydantic import BaseModel, Field
-# Cannot be run standalone because of these imports
-from app.utils.paths import Paths
+
+import joblib
+import numpy as np
+import pandas as pd
 from app.core.process_data import DataProcessor
 from app.utils.location import Location
+from app.utils.paths import Paths
+from pydantic import BaseModel, Field
+from sklearn.linear_model import Lasso, LinearRegression, Ridge
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
-'''dtype={
-	"Location": str,
-	"Block": int,
-	"Id": int,
-	"MinTemp": float,
-	"MaxTemp": float,
-	"Rainfall": float,
-	"WindGustSpeed": float,
-	"WindSpeed9am": float,
-	"WindSpeed3pm": float,
-	"Humidity9am": float,
-	"Humidity3pm": float,
-	"Pressure9am": float,
-	"Pressure3pm": float,
-	"Cloud9am": float,
-	"Cloud3pm": float,
-	"Temp9am": float,
-	"Temp3pm": float,
-	"DayIndex": int,
-	"Year": int,
-	"Month": int,
-	"LocationHash": int
-}'''
 
 class DayData(BaseModel):
 	MinTemp: float = Field(13, ge=-70, le=70, description='The minimum temperature for the day (C)')
