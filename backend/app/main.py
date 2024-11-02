@@ -48,7 +48,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 		content={'Detail': exc.detail, 'Error': 'An error occurred'}
 	)
 
-
 #=== API PATHS ===
 
 @app.get('/')
