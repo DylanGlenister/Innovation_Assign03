@@ -67,3 +67,71 @@ a:hover {
     font-family: Arial, Helvetica, sans-serif;
     font-style: italic;
 }
+
+
+
+/* Start of PREDICTTEMP.CSS */
+
+/* Container for the entire component */
+.predict-container {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping to keep elements in a single row */
+    width: 100%; /* Full width */
+    margin: 0 auto; /* Center align on the page */
+    padding: 20px; /* Add padding for spacing */
+}
+
+/* Sidebar styling for the date and location selectors */
+.predict-sidebar {
+    margin-right: 20px; /* Space between sidebar and chart */
+    width: 250px; /* Fixed width for sidebar */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+}
+
+/* Chart container to allow responsive width */
+.chart-container {
+    flex: 1; /* Allow chart to take remaining space */
+    min-width: 300px; /* Set a minimum width */
+    width: 100%; /* Make the chart container full width */
+    height: auto; /* Allow height to adjust based on content */
+    display: flex;
+    align-items: stretch; /* Stretch children to fill */
+    overflow: hidden; /* Hide overflow */
+}
+
+/* SVG styling for the chart */
+.chart-container svg {
+    width: 100%; /* Make the SVG take the full width of the container */
+    height: auto; /* Auto height to maintain aspect ratio */
+}
+
+/* Styling for the text labels */
+.predict-text {
+    font-weight: bold; /* Make text bold */
+    margin-top: 10px; /* Space above the text */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .predict-container {
+        flex-direction: column; /* Stack elements vertically */
+        align-items: center; /* Center align items */
+    }
+    .predict-sidebar {
+        width: 100%; /* Full width on smaller screens */
+        margin-right: 0; /* Remove right margin */
+    }
+    .chart-container {
+        height: 65vh; /* Maintain height for better visibility */
+        width: 100%; /* Full width */
+    }
+}
+
+/* Additional breakpoint for extra-large screens */
+@media (min-width: 1200px) {
+    .chart-container {
+        height: 75vh; /* Increase height for larger screens */
+    }
+}
+
+/* End of PREDICTTEMP.CSS */
