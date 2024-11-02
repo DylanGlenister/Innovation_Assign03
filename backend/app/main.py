@@ -1,8 +1,4 @@
 import time
-import app.core.model as wm
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 import app.core.model as wm
