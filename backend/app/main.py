@@ -1,6 +1,5 @@
 import time
 import app.core.model as wm
-import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
