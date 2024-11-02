@@ -58,12 +58,10 @@ class DataProcessor:
 		data['Date'] = data['Date'].apply(to_iso_date)
 		# DayIndex is needed for reconfiguration, to validate sequenciality.
 		data['DayIndex'] = data['Date'].apply(convert_date_to_day_index)
-		# TODO May need to remove year to prevent overfitting
 		data['Year'] = data['Date'].apply(extract_year)
 		data['Month'] = data['Date'].apply(extract_month)
-		# Don't include the day to make it harder for the model to overfit
 		data['Day'] = data['Date'].apply(extract_day)
-		# Remove the date as well for the same reason
+		# Remove the date as it is not needed now
 		data.drop(columns=['Date'], inplace=True)
 
 		data['LocationHash'] = data['Location'].apply(Location.name_to_id)
@@ -128,8 +126,6 @@ class DataProcessor:
 			return df_filtered
 
 		data = purge(data)
-		# TODO Try to minimise the MSE
-		#data.drop(columns=['DayIndex'], inplace=True)
 		data.to_csv(Paths.processed_dataset)
 
 	@staticmethod
