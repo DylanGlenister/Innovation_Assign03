@@ -8,6 +8,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
+#=== SETUP ===
+
 manager = wm.ModelManager()
 
 @asynccontextmanager
@@ -45,6 +47,9 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 		status_code=exc.status_code,
 		content={'Detail': exc.detail, 'Error': 'An error occurred'}
 	)
+
+
+#=== API PATHS ===
 
 @app.get('/')
 async def root():
