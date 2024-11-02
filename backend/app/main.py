@@ -1,9 +1,4 @@
 import time
-import app.core.model as wm
-import os
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 import app.core.model as wm
@@ -12,6 +7,8 @@ from app.utils.paths import Paths
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+
+#=== SETUP ===
 
 manager = wm.ModelManager()
 
@@ -50,6 +47,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 		status_code=exc.status_code,
 		content={'Detail': exc.detail, 'Error': 'An error occurred'}
 	)
+
+#=== API PATHS ===
 
 @app.get('/')
 async def root():
@@ -197,5 +196,3 @@ async def get_csv(file_name: str):
     if os.path.exists(file_path) and file_name.endswith(".csv"):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="File not found or invalid file type")
-
-
