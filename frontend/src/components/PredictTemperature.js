@@ -12,21 +12,20 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
   const fetchData = async (date, location) => {
     const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() - 1); // Set endDate to t-1
+    endDate.setDate(endDate.getDate() - 1);
     const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 13); // Set startDate to t-14
+    startDate.setDate(endDate.getDate() - 13);
 
     const dataResponse = await d3.csv("http://localhost:8000/data/weatherAUS_processed.csv");
 
-    const filteredData = dataResponse
-      .filter((row) => {
-        const rowDate = new Date(`${row.Year}-${row.Month}-${row.Day}`);
-        return (
-          row.Location === location &&
-          rowDate >= startDate &&
-          rowDate <= endDate // Includes dates from t-14 to t-1
-        );
-      });
+    const filteredData = dataResponse.filter((row) => {
+      const rowDate = new Date(`${row.Year}-${row.Month}-${row.Day}`);
+      return (
+        row.Location === location &&
+        rowDate >= startDate &&
+        rowDate <= endDate
+      );
+    });
 
     const parsedData = parseCsvData(filteredData);
     setData(parsedData);
@@ -55,8 +54,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
     d3.select(chartRef.current).select("svg").remove();
 
-    const svg = d3
-      .select(chartRef.current)
+    const svg = d3.select(chartRef.current)
       .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
@@ -67,8 +65,8 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
       ...data.map(d => ({
         ...d,
         date: new Date(d.date),
-        MinTemp: isNaN(d.MinTemp) ? null : +d.MinTemp,
-        MaxTemp: isNaN(d.MaxTemp) ? null : +d.MaxTemp,
+        MinTemp: isNaN(d.MinTemp) ? 0 : +d.MinTemp,
+        MaxTemp: isNaN(d.MaxTemp) ? 0 : +d.MaxTemp,
       })),
       ...(predictedMinTemp !== null && predictedMaxTemp !== null
         ? [{ date: new Date(selectedDate), MinTemp: predictedMinTemp, MaxTemp: predictedMaxTemp }]
@@ -80,7 +78,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
       .range([0, width]);
 
     const y = d3.scaleLinear()
-      .domain([0, d3.max(extendedData, d => Math.max(d.MinTemp || 0, d.MaxTemp || 0))])
+      .domain([0, d3.max(extendedData, d => Math.max(d.MinTemp, d.MaxTemp))])
       .range([height, 0]);
 
     svg.append("g")
@@ -93,49 +91,100 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
     svg.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d}°C`));
 
-    const minLine = d3.line()
+    const areaMin = d3.area()
       .x(d => x(d.date))
-      .y(d => y(d.MinTemp))
+      .y0(height)
+      .y1(d => y(d.MinTemp))
       .curve(d3.curveMonotoneX);
 
-    const maxLine = d3.line()
+    const areaMax = d3.area()
       .x(d => x(d.date))
-      .y(d => y(d.MaxTemp))
+      .y0(d => y(d.MinTemp))
+      .y1(d => y(d.MaxTemp))
       .curve(d3.curveMonotoneX);
 
     svg.append("path")
       .datum(extendedData)
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 1.5)
-      .attr("d", minLine);
+      .attr("fill", "lightblue")
+      .attr("d", areaMin);
 
     svg.append("path")
       .datum(extendedData)
-      .attr("fill", "none")
-      .attr("stroke", "red")
-      .attr("stroke-width", 1.5)
-      .attr("d", maxLine);
+      .attr("fill", "lightcoral")
+      .attr("d", areaMax);
 
-    svg.selectAll(".min-temp-point")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("class", "min-temp-point")
-      .attr("cx", d => x(new Date(d.date)))
-      .attr("cy", d => y(d.MinTemp))
-      .attr("r", 3)
-      .attr("fill", "steelblue");
+    // Temperature display box
+    const tempBox = svg.append("g")
+      .attr("class", "temp-box")
+      .attr("opacity", 0); // Start hidden
 
-    svg.selectAll(".max-temp-point")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("class", "max-temp-point")
-      .attr("cx", d => x(new Date(d.date)))
-      .attr("cy", d => y(d.MaxTemp))
-      .attr("r", 3)
-      .attr("fill", "red");
+    tempBox.append("rect")
+      .attr("width", 120)
+      .attr("height", 50)
+      .attr("fill", "white")
+      .attr("stroke", "black");
+
+    tempBox.append("text")
+      .attr("x", 10)
+      .attr("y", 20)
+      .attr("fill", "black")
+      .attr("font-size", "12px");
+
+    // Line that follows the cursor
+    const cursorLine = svg.append("line")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+      .attr("y1", 0)
+      .attr("y2", height)
+      .attr("opacity", 0); // Start hidden
+
+    // Show temperature data on mouse move
+    const showTempData = (xPos) => {
+      const dateAtPos = x.invert(xPos);
+      const dataAtDate = extendedData.find(d => d.date.toDateString() === dateAtPos.toDateString());
+
+      if (dataAtDate) {
+        const minTemp = dataAtDate.MinTemp;
+        const maxTemp = dataAtDate.MaxTemp;
+
+        // Position the box based on cursor position
+        if (xPos > width - 120) { // If near the right edge
+          tempBox.transition()
+            .duration(200) // Smooth transition duration
+            .attr("transform", `translate(${xPos - 130},${y(maxTemp) - 60})`) // Move left
+            .on("end", function() {
+              d3.select(this).attr("opacity", 1);
+            });
+        } else { // Default position to the right of cursor
+          tempBox.transition()
+            .duration(20) // Smooth transition duration
+            .attr("transform", `translate(${xPos + 10},${y(maxTemp) - 60})`) // Move right
+            .on("end", function() {
+              d3.select(this).attr("opacity", 1);
+            });
+        }
+
+        // Update the text inside the box
+        tempBox.select("text")
+          .text(`Min: ${minTemp.toFixed(1)}°C Max: ${maxTemp.toFixed(1)}°C`);
+
+        cursorLine.attr("opacity", 1).attr("x1", xPos).attr("x2", xPos); // Show the cursor line
+      } else {
+        tempBox.attr("opacity", 0); // Hide the box if no data
+        cursorLine.attr("opacity", 0); // Hide the cursor line
+      }
+    };
+
+    // Show temperature data and line on mouse move
+    chartRef.current.addEventListener("mousemove", (event) => {
+      const [mouseX] = d3.pointer(event);
+      showTempData(mouseX - margin.left); // Show temperature data based on mouse position
+    });
+
+    chartRef.current.addEventListener("mouseleave", () => {
+      tempBox.attr("opacity", 0); // Hide temperature box when mouse leaves
+      cursorLine.attr("opacity", 0); // Hide cursor line when mouse leaves
+    });
 
     if (predictedMinTemp !== null) {
       svg.append("circle")

@@ -6,37 +6,37 @@ import '../components/styles.css';
 
 const PredictHumidity = ({ selectedDate, selectedLocation }) => {
   const [data, setData] = useState([]);
-  const [predictedHumidity, setPredictedHumidity] = useState(null);
+  const [predictedHumidity9am, setPredictedHumidity9am] = useState(null);
+  const [predictedHumidity3pm, setPredictedHumidity3pm] = useState(null);
   const chartRef = useRef();
+  const tooltipRef = useRef();
 
   const fetchData = async (date, location) => {
     const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() - 1); // Set endDate to t-1
+    endDate.setDate(endDate.getDate() - 1);
     const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 13); // Set startDate to t-14
+    startDate.setDate(endDate.getDate() - 13);
 
     const dataResponse = await d3.csv("http://localhost:8000/data/weatherAUS_processed.csv");
 
-    const filteredData = dataResponse
-      .filter((row) => {
-        const rowDate = new Date(`${row.Year}-${row.Month}-${row.Day}`);
-        return (
-          row.Location === location &&
-          rowDate >= startDate &&
-          rowDate <= endDate
-        );
-      });
+    const filteredData = dataResponse.filter((row) => {
+      const rowDate = new Date(`${row.Year}-${row.Month}-${row.Day}`);
+      return (
+        row.Location === location &&
+        rowDate >= startDate &&
+        rowDate <= endDate
+      );
+    });
 
     const parsedData = parseCsvData(filteredData);
     setData(parsedData);
 
-    // Build the payload for prediction
     const payload = buildPredictPayload(parsedData);
 
     try {
-      // Request predicted humidity
       const predictionResponse = await axios.post("http://localhost:8000/api/v1/endpoints/models/linear/predict", payload);
-      setPredictedHumidity(predictionResponse.data.Result.Humidity); // Assuming the API returns 'Humidity' in 'Result'
+      setPredictedHumidity9am(predictionResponse.data.Result.Humidity9am);
+      setPredictedHumidity3pm(predictionResponse.data.Result.Humidity3pm);
     } catch (error) {
       console.error("Error fetching predicted humidity:", error.response ? error.response.data : error);
     }
@@ -62,84 +62,163 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    const parsedData = data.map(d => ({
+      date: new Date(d.date),
+      Humidity9am: isNaN(d.Humidity9am) ? null : +d.Humidity9am,
+      Humidity3pm: isNaN(d.Humidity3pm) ? null : +d.Humidity3pm,
+    })).filter(d => d.Humidity9am !== null && d.Humidity3pm !== null);
+
+    const extendedData = [
+      ...parsedData,
+      ...(predictedHumidity9am !== null && predictedHumidity3pm !== null
+        ? [{ date: new Date(selectedDate), Humidity9am: predictedHumidity9am, Humidity3pm: predictedHumidity3pm }]
+        : [])
+    ];
+
     const x = d3.scaleTime()
-      .domain(d3.extent(data, d => new Date(d.date)))
+      .domain(d3.extent(extendedData, d => d.date))
       .range([0, width]);
 
     const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => Math.max(d.Humidity9am || 0, d.Humidity3pm || 0))])
+      .domain([0, 100])
       .range([height, 0]);
 
-    // Define area for Humidity9am
-    const area9am = d3.area()
-      .x(d => x(new Date(d.date)))
-      .y0(height)
-      .y1(d => y(d.Humidity9am))
-      .curve(d3.curveMonotoneX);
-
-    // Define area for Humidity3pm
-    const area3pm = d3.area()
-      .x(d => x(new Date(d.date)))
-      .y0(height)
-      .y1(d => y(d.Humidity3pm))
-      .curve(d3.curveMonotoneX);
-
-    // Append 9am humidity area
-    svg.append("path")
-      .datum(data)
-      .attr("fill", "lightblue")
-      .attr("d", area9am);
-
-    // Append 3pm humidity area
-    svg.append("path")
-      .datum(data)
-      .attr("fill", "steelblue")
-      .attr("d", area3pm);
-
-    // Add x-axis
     svg.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%d/%m")));
+      .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%d/%m")))
+      .selectAll("text")
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end");
 
-    // Add y-axis
     svg.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d}%`));
 
-    // Add predicted humidity point and label if available
-    if (predictedHumidity !== null) {
+    const line9am = d3.line()
+      .x(d => x(d.date))
+      .y(d => y(d.Humidity9am))
+      .curve(d3.curveMonotoneX);
+
+    const line3pm = d3.line()
+      .x(d => x(d.date))
+      .y(d => y(d.Humidity3pm))
+      .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+      .datum(extendedData)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("d", line9am);
+
+    svg.append("path")
+      .datum(extendedData)
+      .attr("fill", "none")
+      .attr("stroke", "red")
+      .attr("stroke-width", 1.5)
+      .attr("d", line3pm);
+
+    const tooltip = d3.select(chartRef.current)
+      .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("background", "lightgrey")
+      .style("padding", "5px")
+      .style("border-radius", "4px")
+      .style("pointer-events", "none");
+
+    svg.selectAll(".dot-9am")
+      .data(extendedData)
+      .enter()
+      .append("circle")
+      .attr("class", "dot-9am")
+      .attr("cx", d => x(d.date))
+      .attr("cy", d => y(d.Humidity9am))
+      .attr("r", 4)
+      .attr("fill", "steelblue")
+      .on("mouseover", (event, d) => {
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip.html(`Date: ${d3.timeFormat("%d/%m/%Y")(d.date)}<br>Humidity 9 am: ${d.Humidity9am}%`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", () => {
+        tooltip.transition().duration(500).style("opacity", 0);
+      });
+
+    svg.selectAll(".dot-3pm")
+      .data(extendedData)
+      .enter()
+      .append("circle")
+      .attr("class", "dot-3pm")
+      .attr("cx", d => x(d.date))
+      .attr("cy", d => y(d.Humidity3pm))
+      .attr("r", 4)
+      .attr("fill", "red")
+      .on("mouseover", (event, d) => {
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip.html(`Date: ${d3.timeFormat("%d/%m/%Y")(d.date)}<br>Humidity 3 pm: ${d.Humidity3pm}%`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", () => {
+        tooltip.transition().duration(500).style("opacity", 0);
+      });
+
+    if (predictedHumidity9am !== null && predictedHumidity3pm !== null) {
+      const predictionDate = new Date(selectedDate);
+
       svg.append("circle")
-        .attr("cx", x(new Date(selectedDate)))
-        .attr("cy", y(predictedHumidity))
+        .attr("cx", x(predictionDate))
+        .attr("cy", y(predictedHumidity9am))
         .attr("r", 5)
         .attr("fill", "orange");
 
       svg.append("text")
-        .attr("x", x(new Date(selectedDate)) - 40)
-        .attr("y", y(predictedHumidity) - 10)
-        .text(`Pred Humidity: ${predictedHumidity}%`)
+        .attr("x", x(predictionDate) + 5)
+        .attr("y", y(predictedHumidity9am) - 10)
+        .text(`Predicted 9 am Humidity: ${predictedHumidity9am}%`)
         .attr("font-size", "12px")
         .attr("fill", "orange");
+
+      svg.append("circle")
+        .attr("cx", x(predictionDate))
+        .attr("cy", y(predictedHumidity3pm))
+        .attr("r", 5)
+        .attr("fill", "purple");
+
+      svg.append("text")
+        .attr("x", x(predictionDate) + 5)
+        .attr("y", y(predictedHumidity3pm) - 10)
+        .text(`Predicted 3 pm Humidity: ${predictedHumidity3pm}%`)
+        .attr("font-size", "12px")
+        .attr("fill", "purple");
     }
 
-    // Add legend
-    svg.append("circle").attr("cx", width - 100).attr("cy", 10).attr("r", 5).style("fill", "lightblue");
-    svg.append("text").attr("x", width - 90).attr("y", 10).text("Humidity 9am").style("font-size", "12px").attr("alignment-baseline", "middle");
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width - 150},${20})`);
 
-    svg.append("circle").attr("cx", width - 100).attr("cy", 30).attr("r", 5).style("fill", "steelblue");
-    svg.append("text").attr("x", width - 90).attr("y", 30).text("Humidity 3pm").style("font-size", "12px").attr("alignment-baseline", "middle");
+    legend.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 5).style("fill", "steelblue");
+    legend.append("text").attr("x", 10).attr("y", 0).text("Humidity 9 am").style("font-size", "12px").attr("alignment-baseline", "middle");
 
-  }, [data, predictedHumidity, selectedDate]);
+    legend.append("circle").attr("cx", 0).attr("cy", 20).attr("r", 5).style("fill", "red");
+    legend.append("text").attr("x", 10).attr("y", 20).text("Humidity 3 pm").style("font-size", "12px").attr("alignment-baseline", "middle");
+
+  }, [data, predictedHumidity9am, predictedHumidity3pm, selectedDate]);
 
   return (
-    <div className="predict-container">
+    <div className="predict-container" ref={tooltipRef}>
       <h2>Humidity Prediction</h2>
       <div className="chart-container" ref={chartRef}>
         {data.length === 0 && <p>Loading data...</p>}
       </div>
-      {predictedHumidity !== null && (
+      {predictedHumidity9am !== null && predictedHumidity3pm !== null && (
         <div className="prediction-results" style={{ marginTop: "20px", textAlign: "center" }}>
           <p>
-            Predicted Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity}%
+            Predicted 9 am Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity9am}%
+          </p>
+          <p>
+            Predicted 3 pm Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity3pm}%
           </p>
         </div>
       )}

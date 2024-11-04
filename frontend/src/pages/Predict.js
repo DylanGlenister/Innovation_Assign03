@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PredictTemperature from '../components/PredictTemperature';
-import PredictRainfall from '../components/PredictRainfall';
+import PredictedWindGustSpeed from '../components/PredictWindGustSpeed';
 import PredictHumidity from '../components/PredictHumidity';
 import DateLocationSelector from '../components/DateLocationSelector';
 
@@ -18,7 +18,7 @@ function Predict() {
                 onLocationChange={setSelectedLocation}
             />
             <PredictTemperature selectedDate={selectedDate} selectedLocation={selectedLocation} />
-            <PredictRainfall selectedDate={selectedDate} selectedLocation={selectedLocation} />
+            <PredictedWindGustSpeed selectedDate={selectedDate} selectedLocation={selectedLocation} />
             <PredictHumidity selectedDate={selectedDate} selectedLocation={selectedLocation} />
         </div>
     );
