@@ -1,8 +1,10 @@
-/*Styling the Navigation Bar*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+/* Styling the Navigation Bar */
 .menu {
-    background-color: skyblue; 
+    background-color: #a0d6b4;
     border-radius: 10px;
-    padding: 0%;
+    padding: 10px;
     display: flex;
     justify-content: center;
     margin: 1%;
@@ -10,128 +12,195 @@
 
 .navbar {
     list-style-type: none; 
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+    font-style: italic;
     display: flex; 
 }
 
-/* CSS Animation for Navbar */
-@keyframes glow {
-    0% {
-        box-shadow: 0 0 5px yellow;
-    }
-    50% {
-        box-shadow: 0 0 20px lightgoldenrodyellow, 0 0 30px lightcoral;
-    }
-    100% {
-        box-shadow: 0 0 5px yellow;
-    }
+.navbar li {
+    margin-right: 50px;
+    padding: 10px 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+    color: #004d40;
 }
 
 .navbar li:hover {
     animation: glow 1s infinite alternate;
 }
 
-.navbar li {
-    margin-right: 220px;
-    padding: 0%;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 25px;
-}
-
-.navbar li:last-child {
-    margin-right: 0; 
-}
-
 .navbar a {
-    justify-content: center;
     text-decoration: none;
-    color: black;
+    color: #004d40;
 }
 
 a:hover {
-    color: red;
+    color: #2d5d34;
+}
+
+/* CSS Animation for Navbar */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px #a0d6b4;
+    }
+    50% {
+        box-shadow: 0 0 20px #a0d6b4, 0 0 30px #85b69b;
+    }
+    100% {
+        box-shadow: 0 0 5px #a0d6b4;
+    }
 }
 
 /* Main Page Customisations */
 #main_page {
-    display: 'flex';
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    text-align: center;
+    background-color: #CDE7E5; /* Pastel blue background */
+    border-radius: 10px;
     padding: 20px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 1000px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#main_page h1 {
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+    color: #2C5D53; /* Dark greenish-blue for better contrast */
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+#date-location-selector {
+    margin-bottom: 20px;
 }
 
 #main_title {
     font-family: Arial, Helvetica, sans-serif;
     font-style: italic;
+    color: #2c3e50; /* Darker blue for title */
 }
 
+#visualisation_page {
+    text-align: center;
+    margin-bottom: 20px;
+}
 
+.prediction-container {
+    background-color: #E3F4F1;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 800px;
+}
+
+.prediction-container h2 {
+    color: #3E7263; /* Darker green for better contrast/accessibility */
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+#humidity_chart, #temperature_chart {
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #E3F4F1;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#footer {
+    margin-top: 40px;
+    padding: 10px;
+    text-align: center;
+    background-color: #A7C4C0;
+    border-radius: 8px;
+    width: 100%;
+    color: #ffffff;
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+}
 
 /* Start of PREDICTTEMP.CSS */
 
 /* Container for the entire component */
 .predict-container {
     display: flex;
-    flex-wrap: nowrap; /* Prevent wrapping to keep elements in a single row */
-    width: 100%; /* Full width */
-    margin: 0 auto; /* Center align on the page */
-    padding: 20px; /* Add padding for spacing */
+    flex-wrap: nowrap;
+    width: 100%; 
+    margin: 0 auto;
+    padding: 20px;
 }
 
 /* Sidebar styling for the date and location selectors */
 .predict-sidebar {
-    margin-right: 20px; /* Space between sidebar and chart */
-    width: 250px; /* Fixed width for sidebar */
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    margin-right: 20px;
+    width: 250px;
+    flex-shrink: 0;
 }
 
 /* Chart container to allow responsive width */
 .chart-container {
-    flex: 1; /* Allow chart to take remaining space */
-    min-width: 300px; /* Set a minimum width */
-    width: 100%; /* Make the chart container full width */
-    height: auto; /* Allow height to adjust based on content */
+    flex: 1;
+    min-width: 300px;
+    width: 100%;
+    height: auto;
     display: flex;
-    align-items: stretch; /* Stretch children to fill */
-    overflow: hidden; /* Hide overflow */
+    align-items: stretch;
+    overflow: hidden;
 }
 
 /* SVG styling for the chart */
 .chart-container svg {
-    width: 100%; /* Make the SVG take the full width of the container */
-    height: auto; /* Auto height to maintain aspect ratio */
+    width: 100%;
+    height: auto;
 }
 
 /* Styling for the text labels */
 .predict-text {
-    font-weight: bold; /* Make text bold */
-    margin-top: 10px; /* Space above the text */
+    font-weight: bold;
+    margin-top: 10px;
+    color: #004d40; /* Dark green text */
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    /* Adjust navigation bar */
+    .menu {
+        flex-direction: column;
+        padding: 5px;
+    }
+
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar li {
+        margin: 10px 0;
+        font-size: 20px;
+    }
+
     .predict-container {
-        flex-direction: column; /* Stack elements vertically */
-        align-items: center; /* Center align items */
+        flex-direction: column;
+        align-items: center;
     }
     .predict-sidebar {
-        width: 100%; /* Full width on smaller screens */
-        margin-right: 0; /* Remove right margin */
+        width: 100%;
+        margin-right: 0;
     }
     .chart-container {
-        height: 65vh; /* Maintain height for better visibility */
-        width: 100%; /* Full width */
+        height: 65vh;
+        width: 100%;
     }
 }
 
 /* Additional breakpoint for extra-large screens */
 @media (min-width: 1200px) {
     .chart-container {
-        height: 75vh; /* Increase height for larger screens */
+        height: 75vh;
     }
 }
-
-/* End of PREDICTTEMP.CSS */

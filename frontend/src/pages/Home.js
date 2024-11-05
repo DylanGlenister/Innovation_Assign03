@@ -7,6 +7,11 @@ function Home() {
       <p>Explore the app through the navigation menu at the top of the website.</p>
       <p>This app is designed to provide insightful weather visualisations and an easy-to-use interface, 
         making accessing meteorological data all the more easier.</p>
+        
+      <hr></hr>
+      <footer id="footer">
+        <p>&copy; Group 69 @ Swinburne 2024</p>
+      </footer>
     </div>
   );
 }

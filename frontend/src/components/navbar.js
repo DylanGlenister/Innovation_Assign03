@@ -7,13 +7,13 @@ function Navbar() {
         <nav className="menu">
             <ul className="navbar">
                 <li>
-                    <Link to="/">Home</Link>
+                    <Link to="/">HOME</Link>
                 </li>
                 <li>
-                    <Link to="/dataviz">Visualisations</Link>
+                    <Link to="/dataviz">VISUALISATIONS</Link>
                 </li>
                 <li>
-                    <Link to="/predict">Predict</Link> {/* Ensure the route matches the Predict page */}
+                    <Link to="/predict">PREDICT</Link>
                 </li>
             </ul>
         </nav>

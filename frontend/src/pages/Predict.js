@@ -9,7 +9,7 @@ function Predict() {
     const [selectedLocation, setSelectedLocation] = useState("Melbourne");
 
     return (
-        <div>
+        <div id="main_page">
             <h1>Weather Prediction</h1>
             <DateLocationSelector
                 selectedDate={selectedDate}
@@ -17,9 +17,27 @@ function Predict() {
                 onDateChange={setSelectedDate}
                 onLocationChange={setSelectedLocation}
             />
-            <PredictTemperature selectedDate={selectedDate} selectedLocation={selectedLocation} />
-            <PredictedWindGustSpeed selectedDate={selectedDate} selectedLocation={selectedLocation} />
-            <PredictHumidity selectedDate={selectedDate} selectedLocation={selectedLocation} />
+
+            {/* Each prediction in its own container */}
+            <div className="prediction-container">
+                <h2>Temperature Prediction</h2>
+                <PredictTemperature selectedDate={selectedDate} selectedLocation={selectedLocation} />
+            </div>
+            
+            <div className="prediction-container">
+                <h2>Wind Gust Speed Prediction</h2>
+                <PredictedWindGustSpeed selectedDate={selectedDate} selectedLocation={selectedLocation} />
+            </div>
+
+            <div className="prediction-container">
+                <h2>Humidity Prediction</h2>
+                <PredictHumidity selectedDate={selectedDate} selectedLocation={selectedLocation} />
+            </div>
+
+            <hr />
+            <footer id="footer">
+                <p>&copy; Group 69 @ Swinburne 2024</p>
+            </footer>
         </div>
     );
 }
