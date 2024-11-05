@@ -8,6 +8,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
   const [data, setData] = useState([]);
   const [predictedMinTemp, setPredictedMinTemp] = useState(null);
   const [predictedMaxTemp, setPredictedMaxTemp] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("linear"); // Default to linear
   const chartRef = useRef();
 
   const fetchData = async (date, location) => {
@@ -33,7 +34,10 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
     const payload = buildPredictPayload(parsedData);
 
     try {
-      const predictionResponse = await axios.post("http://localhost:8000/api/v1/endpoints/models/linear/predict", payload);
+      const predictionResponse = await axios.post(
+        `http://localhost:8000/api/v1/endpoints/models/${selectedModel}/predict`, 
+        payload
+      );
       setPredictedMinTemp(predictionResponse.data.Result.MinTemp);
       setPredictedMaxTemp(predictionResponse.data.Result.MaxTemp);
     } catch (error) {
@@ -43,7 +47,12 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
   useEffect(() => {
     fetchData(selectedDate, selectedLocation);
-  }, [selectedDate, selectedLocation]);
+  }, [selectedDate, selectedLocation, selectedModel]); // Fetch data when model changes
+
+  // Handle model selection change
+  const handleModelChange = (event) => {
+    setSelectedModel(event.target.value);
+  };
 
   useEffect(() => {
     const margin = { top: 60, right: 100, bottom: 80, left: 80 };
@@ -63,7 +72,6 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
     const extendedData = [
       ...data.map(d => ({
-        ...d,
         date: new Date(d.date),
         MinTemp: isNaN(d.MinTemp) ? 0 : +d.MinTemp,
         MaxTemp: isNaN(d.MaxTemp) ? 0 : +d.MaxTemp,
@@ -119,7 +127,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
       .attr("opacity", 0); // Start hidden
 
     tempBox.append("rect")
-      .attr("width", 120)
+      .attr("width", 150)
       .attr("height", 50)
       .attr("fill", "white")
       .attr("stroke", "black");
@@ -147,25 +155,25 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         const minTemp = dataAtDate.MinTemp;
         const maxTemp = dataAtDate.MaxTemp;
 
-        // Position the box based on cursor position
-        if (xPos > width - 120) { // If near the right edge
-          tempBox.transition()
-            .duration(200) // Smooth transition duration
-            .attr("transform", `translate(${xPos - 130},${y(maxTemp) - 60})`) // Move left
-            .on("end", function() {
-              d3.select(this).attr("opacity", 1);
-            });
-        } else { // Default position to the right of cursor
-          tempBox.transition()
-            .duration(20) // Smooth transition duration
-            .attr("transform", `translate(${xPos + 10},${y(maxTemp) - 60})`) // Move right
-            .on("end", function() {
-              d3.select(this).attr("opacity", 1);
-            });
-        }
+        // Update the position of the box
+        tempBox.transition()
+          .duration(20)
+          .attr("transform", `translate(${xPos + 10},${y(maxTemp) - 20})`)
+          .on("end", function () {
+            d3.select(this).attr("opacity", 1);
+          });
+
+        // Update the box size and position
+        tempBox.select("rect")
+          .attr("width", 150) // Set a larger width
+          .attr("height", 50) // Set a larger height
+          .attr("fill", "white") // Set the background color
+          .attr("stroke", "black"); // Set the border color
 
         // Update the text inside the box
         tempBox.select("text")
+          .attr("x", 10) // Adjust X position
+          .attr("y", 20) // Adjust Y position
           .text(`Min: ${minTemp.toFixed(1)}°C Max: ${maxTemp.toFixed(1)}°C`);
 
         cursorLine.attr("opacity", 1).attr("x1", xPos).attr("x2", xPos); // Show the cursor line
@@ -194,7 +202,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         .attr("fill", "orange");
 
       svg.append("text")
-        .attr("x", x(new Date(selectedDate)) - 75)
+        .attr("x", x(new Date(selectedDate)))
         .attr("y", y(predictedMinTemp) + 30)
         .text(`Pred Min: ${predictedMinTemp}°C`)
         .attr("font-size", "10px")
@@ -209,17 +217,57 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         .attr("fill", "purple");
 
       svg.append("text")
-        .attr("x", x(new Date(selectedDate)) - 75)
+        .attr("x", x(new Date(selectedDate)))
         .attr("y", y(predictedMaxTemp) - 10)
         .text(`Pred Max: ${predictedMaxTemp}°C`)
         .attr("font-size", "10px")
         .attr("fill", "purple");
     }
+
+    // Adding a legend
+    const legend = svg.append("g")
+      .attr("class", "legend")
+      .attr("transform", `translate(${width + 10}, ${height - 50})`); // Bottom right corner
+
+
+    legend.append("rect")
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", "lightblue");
+
+    legend.append("text")
+      .attr("x", 15)
+      .attr("y", 10)
+      .text("Min Temp Area")
+      .attr("font-size", "12px")
+      .attr("alignment-baseline", "middle");
+
+    legend.append("rect")
+      .attr("y", 20)
+      .attr("width", 10)
+      .attr("height", 10)
+      .attr("fill", "lightcoral");
+
+    legend.append("text")
+      .attr("x", 15)
+      .attr("y", 30)
+      .text("Max Temp Area")
+      .attr("font-size", "12px")
+      .attr("alignment-baseline", "middle");
+      
   }, [data, predictedMinTemp, predictedMaxTemp, selectedDate]);
 
   return (
     <div className="predict-container">
       <h2>Temperature Prediction</h2>
+      <div>
+        <label>Select a Model: </label>
+        <select value={selectedModel} onChange={handleModelChange}>
+          <option value="linear">Linear</option>
+          <option value="ridge">Ridge</option>
+          <option value="lasso">Lasso</option>
+        </select>
+      </div>
       <div className="chart-container" ref={chartRef}>
         {data.length === 0 && <p>Loading data...</p>}
       </div>

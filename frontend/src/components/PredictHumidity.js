@@ -8,14 +8,14 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
   const [data, setData] = useState([]);
   const [predictedHumidity9am, setPredictedHumidity9am] = useState(null);
   const [predictedHumidity3pm, setPredictedHumidity3pm] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("linear"); // Default to linear
   const chartRef = useRef();
-  const tooltipRef = useRef();
 
   const fetchData = async (date, location) => {
     const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() - 1);
+    endDate.setDate(endDate.getDate() - 1); 
     const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 13);
+    startDate.setDate(endDate.getDate() - 13); 
 
     const dataResponse = await d3.csv("http://localhost:8000/data/weatherAUS_processed.csv");
 
@@ -34,7 +34,10 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
     const payload = buildPredictPayload(parsedData);
 
     try {
-      const predictionResponse = await axios.post("http://localhost:8000/api/v1/endpoints/models/linear/predict", payload);
+      const predictionResponse = await axios.post(
+        `http://localhost:8000/api/v1/endpoints/models/${selectedModel}/predict`, 
+        payload
+      );
       setPredictedHumidity9am(predictionResponse.data.Result.Humidity9am);
       setPredictedHumidity3pm(predictionResponse.data.Result.Humidity3pm);
     } catch (error) {
@@ -44,7 +47,7 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
 
   useEffect(() => {
     fetchData(selectedDate, selectedLocation);
-  }, [selectedDate, selectedLocation]);
+  }, [selectedDate, selectedLocation, selectedModel]); // Update when model changes
 
   useEffect(() => {
     const margin = { top: 60, right: 100, bottom: 80, left: 80 };
@@ -117,54 +120,6 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
       .attr("stroke-width", 1.5)
       .attr("d", line3pm);
 
-    const tooltip = d3.select(chartRef.current)
-      .append("div")
-      .attr("class", "tooltip")
-      .style("opacity", 0)
-      .style("position", "absolute")
-      .style("background", "lightgrey")
-      .style("padding", "5px")
-      .style("border-radius", "4px")
-      .style("pointer-events", "none");
-
-    svg.selectAll(".dot-9am")
-      .data(extendedData)
-      .enter()
-      .append("circle")
-      .attr("class", "dot-9am")
-      .attr("cx", d => x(d.date))
-      .attr("cy", d => y(d.Humidity9am))
-      .attr("r", 4)
-      .attr("fill", "steelblue")
-      .on("mouseover", (event, d) => {
-        tooltip.transition().duration(200).style("opacity", 1);
-        tooltip.html(`Date: ${d3.timeFormat("%d/%m/%Y")(d.date)}<br>Humidity 9 am: ${d.Humidity9am}%`)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", () => {
-        tooltip.transition().duration(500).style("opacity", 0);
-      });
-
-    svg.selectAll(".dot-3pm")
-      .data(extendedData)
-      .enter()
-      .append("circle")
-      .attr("class", "dot-3pm")
-      .attr("cx", d => x(d.date))
-      .attr("cy", d => y(d.Humidity3pm))
-      .attr("r", 4)
-      .attr("fill", "red")
-      .on("mouseover", (event, d) => {
-        tooltip.transition().duration(200).style("opacity", 1);
-        tooltip.html(`Date: ${d3.timeFormat("%d/%m/%Y")(d.date)}<br>Humidity 3 pm: ${d.Humidity3pm}%`)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", () => {
-        tooltip.transition().duration(500).style("opacity", 0);
-      });
-
     if (predictedHumidity9am !== null && predictedHumidity3pm !== null) {
       const predictionDate = new Date(selectedDate);
 
@@ -207,19 +162,23 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
   }, [data, predictedHumidity9am, predictedHumidity3pm, selectedDate]);
 
   return (
-    <div className="predict-container" ref={tooltipRef}>
+    <div className="predict-container">
       <h2>Humidity Prediction</h2>
+      <div>
+        <label>Select a Model: </label>
+        <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+          <option value="linear">Linear</option>
+          <option value="ridge">Ridge</option>
+          <option value="lasso">Lasso</option>
+        </select>
+      </div>
       <div className="chart-container" ref={chartRef}>
         {data.length === 0 && <p>Loading data...</p>}
       </div>
       {predictedHumidity9am !== null && predictedHumidity3pm !== null && (
         <div className="prediction-results" style={{ marginTop: "20px", textAlign: "center" }}>
-          <p>
-            Predicted 9 am Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity9am}%
-          </p>
-          <p>
-            Predicted 3 pm Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity3pm}%
-          </p>
+          <p>Predicted 9 am Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity9am}%</p>
+          <p>Predicted 3 pm Humidity for {selectedDate} at {selectedLocation}: {predictedHumidity3pm}%</p>
         </div>
       )}
     </div>
