@@ -67,3 +67,12 @@ a:hover {
     font-family: Arial, Helvetica, sans-serif;
     font-style: italic;
 }
+
+#visualisation_page {
+    padding: 20px;
+    text-align: center;
+}
+
+#temperature_chart, #humidity_chart {
+    padding: 30px;
+}
