@@ -1,5 +1,3 @@
-// predictPayloadStructure.js
-
 // Function to parse and format each row of the CSV data
 export const parseCsvData = (csvData) => {
     return csvData.map(row => {
