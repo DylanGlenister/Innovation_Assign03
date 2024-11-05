@@ -3,9 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/navbar';
 import Home from './pages/Home';
 import DataViz from './pages/DataViz';
-import HumidityLineChart from './components/HumidityLineChart';
-import TempScatterChart from './components/TempScatterChart';
-
+import PredictTemp from './pages/PredictTemp';
 
 function App() {
   return (
@@ -15,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dataviz" element={<DataViz />} />
+          <Route path="/predict" element={<PredictTemp />} />  {/* Add Predict route */}
         </Routes>
       </div>
     </Router>
