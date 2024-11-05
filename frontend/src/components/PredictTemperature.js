@@ -165,15 +165,15 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
         // Update the box size and position
         tempBox.select("rect")
-          .attr("width", 150) // Set a larger width
-          .attr("height", 50) // Set a larger height
-          .attr("fill", "white") // Set the background color
-          .attr("stroke", "black"); // Set the border color
+          .attr("width", 150)
+          .attr("height", 50) 
+          .attr("fill", "white") 
+          .attr("stroke", "black"); 
 
         // Update the text inside the box
         tempBox.select("text")
-          .attr("x", 10) // Adjust X position
-          .attr("y", 20) // Adjust Y position
+          .attr("x", 10) 
+          .attr("y", 20) 
           .text(`Min: ${minTemp.toFixed(1)}°C Max: ${maxTemp.toFixed(1)}°C`);
 
         cursorLine.attr("opacity", 1).attr("x1", xPos).attr("x2", xPos); // Show the cursor line
@@ -224,7 +224,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         .attr("fill", "purple");
     }
 
-    // Adding a legend
+    // legend
     const legend = svg.append("g")
       .attr("class", "legend")
       .attr("transform", `translate(${width + 10}, ${height - 50})`); // Bottom right corner

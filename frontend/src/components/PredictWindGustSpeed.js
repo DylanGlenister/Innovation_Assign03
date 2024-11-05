@@ -64,7 +64,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
     const svg = d3.select(chartRef.current)
       .append("svg")
       .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom + 60) // Extra space for the legend
+      .attr("height", height + margin.top + margin.bottom + 60) 
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
