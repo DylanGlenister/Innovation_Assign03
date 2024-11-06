@@ -26,11 +26,7 @@ pip install -r requirements.txt
 3. Enter `./backend/.venv/bin/python3.12`
 
 ## Test run
+While the current directory is the backend folder:
 ```bash
-cd backend
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
-
-## running local server
-open up termial and cd to backend/app
-then run 'node server.js'
