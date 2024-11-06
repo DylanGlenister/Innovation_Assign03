@@ -166,7 +166,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
 
   return (
     <div className="predict-container">
-      <h2>Wind Gust Speed Prediction</h2>
+      
       <div>
         <label>Select a Model: </label>
         <select value={selectedModel} onChange={handleModelChange}>

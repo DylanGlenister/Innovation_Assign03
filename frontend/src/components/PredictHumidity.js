@@ -163,7 +163,6 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
 
   return (
     <div className="predict-container">
-      <h2>Humidity Prediction</h2>
       <div>
         <label>Select a Model: </label>
         <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
