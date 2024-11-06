@@ -11,12 +11,10 @@ function DataViz() {
       </div>
       
       <div id="humidity_chart">
-        <h2>Humidity Chart</h2>
         <HumidityLineChart />
       </div>
 
       <div id="temperature_chart">
-        <h2>Temperature Chart</h2>
         <TempScatterChart />
       </div>
 
