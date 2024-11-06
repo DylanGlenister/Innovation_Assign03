@@ -33,7 +33,6 @@ export default function TemperatureAnomalyChart() {
   }, [data]);
 
   function renderChart(data) {
-    // Chart dimensions and margins
     const width = 928;
     const height = 600;
     const marginTop = 20;
@@ -44,7 +43,7 @@ export default function TemperatureAnomalyChart() {
     // X-axis scale (Time scale based on date)
     const x = d3.scaleUtc()
         .domain(d3.extent(data, d => d.date)) // Set domain to the date range
-        .range([marginLeft, width - marginRight]); // Range fits within the chart's width, accounting for margins
+        .range([marginLeft, width - marginRight]); // Range fits within the chart's width
 
     // Y-axis scale (Temperature scale)
     const y = d3.scaleLinear()
@@ -59,7 +58,7 @@ export default function TemperatureAnomalyChart() {
     // Clear previous chart elements to avoid overlap
     d3.select(chartRef.current).selectAll("*").remove();
 
-    // Create the SVG element to contain the chart
+    // contain the chart
     const svg = d3.select(chartRef.current)
         .append("svg")
         .attr("width", width)
@@ -72,11 +71,11 @@ export default function TemperatureAnomalyChart() {
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(d3.axisBottom(x).ticks(width / 80).tickFormat(d3.timeFormat("%Y"))); // Format ticks to display years only
 
-    // Draw the Y-axis with temperature ticks on the left of the chart
+    // animate the Y-axis with temperature ticks on the left of the chart
     svg.append("g")
         .attr("transform", `translate(${marginLeft},0)`)
-        .call(d3.axisLeft(y).ticks(null)) // Set default ticks
-        .call(g => g.selectAll(".tick line") // Create grid lines for better readability
+        .call(d3.axisLeft(y).ticks(null)) // default ticks
+        .call(g => g.selectAll(".tick line") // Create grid lines
             .clone()
             .attr("x2", width - marginLeft - marginRight)
             .attr("stroke", "#ddd"))

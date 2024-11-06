@@ -7,6 +7,8 @@ from app.utils.paths import Paths
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+import os
+
 
 #=== SETUP ===
 
@@ -186,3 +188,13 @@ async def delete_all():
 		'Ridge' : manager.delete(wm.ModelType.Ridge),
 		'Lasso' : manager.delete(wm.ModelType.Lasso),
 	} }
+
+
+# Add this new route to serve CSV files from the 'models' directory
+@app.get("/data/{file_name}")
+async def get_csv(file_name: str):
+    """Serve CSV files from the models directory."""
+    file_path = os.path.join(os.path.dirname(__file__), "models", file_name)
+    if os.path.exists(file_path) and file_name.endswith(".csv"):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="File not found or invalid file type")
