@@ -26,7 +26,13 @@ pip install -r requirements.txt
 3. Enter `./backend/.venv/bin/python3.12`
 
 ## Test run
+While the current directory is the backend folder:
 ```bash
+<<<<<<< HEAD
 cd backend
 uvicorn main:app --reload
 ```
+=======
+uvicorn app.main:app --reload
+```
+>>>>>>> 6b70051a12b67b3e375ac0c3f6d238abadc2392d
