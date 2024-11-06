@@ -30,7 +30,3 @@ pip install -r requirements.txt
 cd backend
 uvicorn main:app --reload
 ```
-
-## running local server
-open up termial and cd to backend/app
-then run 'node server.js'
