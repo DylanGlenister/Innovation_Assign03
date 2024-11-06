@@ -127,14 +127,14 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
         .attr("cx", x(predictionDate))
         .attr("cy", y(predictedHumidity9am))
         .attr("r", 5)
-        .attr("fill", "green");
+        .attr("fill", "orange");
 
       svg.append("text")
-        .attr("x", x(predictionDate) - 160)
-        .attr("y", y(predictedHumidity9am) - 20)
+        .attr("x", x(predictionDate) + 5)
+        .attr("y", y(predictedHumidity9am) - 10)
         .text(`Predicted 9 am Humidity: ${predictedHumidity9am}%`)
         .attr("font-size", "12px")
-        .attr("fill", "green");
+        .attr("fill", "orange");
 
       svg.append("circle")
         .attr("cx", x(predictionDate))
@@ -143,8 +143,8 @@ const PredictHumidity = ({ selectedDate, selectedLocation }) => {
         .attr("fill", "purple");
 
       svg.append("text")
-        .attr("x", x(predictionDate) - 160)
-        .attr("y", y(predictedHumidity3pm) + 40)
+        .attr("x", x(predictionDate) + 5)
+        .attr("y", y(predictedHumidity3pm) - 10)
         .text(`Predicted 3 pm Humidity: ${predictedHumidity3pm}%`)
         .attr("font-size", "12px")
         .attr("fill", "purple");
