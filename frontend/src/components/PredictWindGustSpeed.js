@@ -14,7 +14,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
     const endDate = new Date(date);
     endDate.setDate(endDate.getDate() - 1);
     const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 13);
+    startDate.setDate(endDate.getDate() - 14);
 
     const dataResponse = await d3.csv("http://localhost:8000/data/weatherAUS_processed.csv");
 
