@@ -9,6 +9,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
   const [predictedWindGustSpeed, setPredictedWindGustSpeed] = useState(null);
   const [selectedModel, setSelectedModel] = useState("linear"); // Default to linear
   const chartRef = useRef();
+  const tooltipRef = useRef();
 
   const fetchData = async (date, location) => {
     const endDate = new Date(date);
@@ -45,7 +46,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
 
   useEffect(() => {
     fetchData(selectedDate, selectedLocation);
-  }, [selectedDate, selectedLocation, selectedModel]); // Fetch data when model changes
+  }, [selectedDate, selectedLocation, selectedModel]);
 
   // Handle model selection change
   const handleModelChange = (event) => {
@@ -64,7 +65,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
     const svg = d3.select(chartRef.current)
       .append("svg")
       .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom + 60) 
+      .attr("height", height + margin.top + margin.bottom + 60)
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -102,6 +103,16 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
     svg.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d} km/h`));
 
+    // Tooltip setup
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0)
+      .style("position", "absolute")
+      .style("background-color", "white")
+      .style("border", "1px solid #ccc")
+      .style("padding", "5px")
+      .style("border-radius", "4px");
+
     svg.selectAll(".bar")
       .data(extendedData)
       .enter()
@@ -111,7 +122,20 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
       .attr("y", d => y(d.WindGustSpeed))
       .attr("width", x.bandwidth())
       .attr("height", d => Math.max(0, height - y(d.WindGustSpeed)))
-      .attr("fill", d => d.date.getTime() === new Date(selectedDate).getTime() ? "orange" : colorScale(d.WindGustSpeed));
+      .attr("fill", d => d.date.getTime() === new Date(selectedDate).getTime() ? "Green" : colorScale(d.WindGustSpeed))
+      .on("mouseover", (event, d) => {
+        tooltip.transition().duration(200).style("opacity", 1);
+        tooltip.html(`Wind Gust Speed: ${d.WindGustSpeed} km/h`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mousemove", (event) => {
+        tooltip.style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", () => {
+        tooltip.transition().duration(500).style("opacity", 0);
+      });
 
     if (predictedWindGustSpeed !== null) {
       svg.append("text")
@@ -119,7 +143,7 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
         .attr("y", y(predictedWindGustSpeed) - 10)
         .text(`Predicted: ${predictedWindGustSpeed} km/h`)
         .attr("font-size", "10px")
-        .attr("fill", "orange");
+        .attr("fill", "Green");
     }
 
     // Add legend for intensity
@@ -166,7 +190,6 @@ const PredictWindGustSpeed = ({ selectedDate, selectedLocation }) => {
 
   return (
     <div className="predict-container">
-      
       <div>
         <label>Select a Model: </label>
         <select value={selectedModel} onChange={handleModelChange}>

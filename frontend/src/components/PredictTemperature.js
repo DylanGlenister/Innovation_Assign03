@@ -146,42 +146,49 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
       .attr("y2", height)
       .attr("opacity", 0); // Start hidden
 
+
     // Show temperature data on mouse move
     const showTempData = (xPos) => {
       const dateAtPos = x.invert(xPos);
       const dataAtDate = extendedData.find(d => d.date.toDateString() === dateAtPos.toDateString());
-
+    
       if (dataAtDate) {
         const minTemp = dataAtDate.MinTemp;
         const maxTemp = dataAtDate.MaxTemp;
-
-        // Update the position of the box
+    
+        // Calculate box position based on cursor position
+        const boxWidth = 150; // Width of the box
+        const boxHeight = 50; // Height of the box
+        const boxX = xPos - boxWidth - 10; // Default position to the left of the line
+        const boxY = height - 50; // Position the box above the x-axis
+    
+        // Check if the box fits to the left
+        const fitsLeft = boxX >= 0;
+    
+        // If it doesn't fit, position to the right
+        const finalBoxX = fitsLeft ? boxX : xPos + 10; // Shift to the right if no space
+    
+        // Transition for box position
         tempBox.transition()
           .duration(20)
-          .attr("transform", `translate(${xPos + 10},${y(maxTemp) - 20})`)
-          .on("end", function () {
+          .attr("transform", `translate(${finalBoxX},${boxY})`)
+          .on("end", function() {
             d3.select(this).attr("opacity", 1);
           });
-
-        // Update the box size and position
-        tempBox.select("rect")
-          .attr("width", 150)
-          .attr("height", 50) 
-          .attr("fill", "white") 
-          .attr("stroke", "black"); 
-
+    
         // Update the text inside the box
         tempBox.select("text")
-          .attr("x", 10) 
-          .attr("y", 20) 
           .text(`Min: ${minTemp.toFixed(1)}°C Max: ${maxTemp.toFixed(1)}°C`);
-
+    
         cursorLine.attr("opacity", 1).attr("x1", xPos).attr("x2", xPos); // Show the cursor line
       } else {
         tempBox.attr("opacity", 0); // Hide the box if no data
         cursorLine.attr("opacity", 0); // Hide the cursor line
       }
     };
+    
+
+
 
     // Show temperature data and line on mouse move
     chartRef.current.addEventListener("mousemove", (event) => {
@@ -199,14 +206,14 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         .attr("cx", x(new Date(selectedDate)))
         .attr("cy", y(predictedMinTemp))
         .attr("r", 5)
-        .attr("fill", "orange");
+        .attr("fill", "green");
 
       svg.append("text")
-        .attr("x", x(new Date(selectedDate)))
+        .attr("x", x(new Date(selectedDate)) - 100)
         .attr("y", y(predictedMinTemp) + 30)
         .text(`Pred Min: ${predictedMinTemp}°C`)
-        .attr("font-size", "10px")
-        .attr("fill", "orange");
+        .attr("font-size", "12px")
+        .attr("fill", "green");
     }
 
     if (predictedMaxTemp !== null) {
@@ -217,18 +224,17 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
         .attr("fill", "purple");
 
       svg.append("text")
-        .attr("x", x(new Date(selectedDate)))
-        .attr("y", y(predictedMaxTemp) - 10)
+        .attr("x", x(new Date(selectedDate)) - 100)
+        .attr("y", y(predictedMaxTemp) - 15)
         .text(`Pred Max: ${predictedMaxTemp}°C`)
-        .attr("font-size", "10px")
+        .attr("font-size", "12px")
         .attr("fill", "purple");
     }
 
-    // legend
+    // Legend for temperature areas
     const legend = svg.append("g")
       .attr("class", "legend")
-      .attr("transform", `translate(${width + 10}, ${height - 50})`); // Bottom right corner
-
+      .attr("transform", `translate(${width - 200}, ${height - 450})`); // Adjust position as needed
 
     legend.append("rect")
       .attr("width", 10)
@@ -259,6 +265,7 @@ const PredictTemperature = ({ selectedDate, selectedLocation }) => {
 
   return (
     <div className="predict-container">
+      <h2 style={{ textAlign: 'center' }}></h2>
       <div>
         <label>Select a Model: </label>
         <select value={selectedModel} onChange={handleModelChange}>
